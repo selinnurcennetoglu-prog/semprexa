@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a8884d"/>
+      <stop offset="50%" stop-color="#dbc48a"/>
+      <stop offset="100%" stop-color="#c8a960"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#2a1a10"/>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="url(#cg)" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Crown -->
+  <g transform="translate(100, 52)">
+    <path d="M-30,28 L-30,18 L-22,22 L-12,8 L0,18 L12,8 L22,22 L30,18 L30,28 Z" fill="url(#cg)"/>
+    <circle cx="-30" cy="16" r="3.5" fill="url(#cg)"/>
+    <circle cx="-12" cy="6" r="3.5" fill="url(#cg)"/>
+    <circle cx="0" cy="16" r="4" fill="url(#cg)"/>
+    <circle cx="12" cy="6" r="3.5" fill="url(#cg)"/>
+    <circle cx="30" cy="16" r="3.5" fill="url(#cg)"/>
+    <rect x="-30" y="28" width="60" height="5" rx="1" fill="#a8884d"/>
+  </g>
+
+  <!-- Divider -->
+  <line x1="55" y1="100" x2="145" y2="100" stroke="url(#cg)" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- S letter -->
+  <text x="100" y="145" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="400" letter-spacing="4" fill="url(#cg)">S</text>
+
+  <!-- Bottom divider -->
+  <line x1="55" y1="158" x2="145" y2="158" stroke="url(#cg)" stroke-width="0.5" opacity="0.4"/>
+</svg>
