@@ -25,8 +25,9 @@ declare module "firebase/firestore" {
   export function addDoc(collectionRef: any, data: any): Promise<{ id: string }>;
   export function setDoc(docRef: any, data: any, options?: any): Promise<void>;
   export function getDoc(docRef: any): Promise<{ exists: () => boolean; data: () => any; id: string }>;
-  export function getDocs(query: any): Promise<{ docs: Array<{ id: string; data: () => any }> }>;
+  export function getDocs(query: any): Promise<{ docs: Array<{ id: string; data: () => any }>; empty: boolean }>;
   export function updateDoc(docRef: any, data: any): Promise<void>;
+  export function deleteDoc(docRef: any): Promise<void>;
   export function query(collectionRef: any, ...constraints: any[]): any;
   export function where(field: string, op: string, value: any): any;
   export function orderBy(field: string, direction?: string): any;
