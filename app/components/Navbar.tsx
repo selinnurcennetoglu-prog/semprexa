@@ -9,12 +9,21 @@ import { logoutUser } from "../lib/auth";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; isAdmin: boolean } | null>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) setUser({ name: u.displayName || "", email: u.email || "" });
-      else setUser(null);
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        try {
+          const { getDoc, doc } = await import("firebase/firestore");
+          const { db } = await import("../lib/firebase");
+          const snap = await getDoc(doc(db, "users", u.uid));
+          const isAdmin = snap.exists() && snap.data().role === "admin";
+          setUser({ name: u.displayName || "", email: u.email || "", isAdmin });
+        } catch {
+          setUser({ name: u.displayName || "", email: u.email || "", isAdmin: false });
+        }
+      } else setUser(null);
     });
     return () => unsub();
   }, []);
@@ -37,6 +46,7 @@ export default function Navbar() {
             <>
               <Link href="/ilan/yeni" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">İlan Aç</Link>
               <Link href="/mesajlar" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">Mesajlar</Link>
+              {user.isAdmin && <Link href="/admin" className="font-cormorant text-sm tracking-widest uppercase text-gold hover:text-gold-light transition-colors">Admin</Link>}
               <span className="font-cormorant text-xs text-gold/40">{user.name || user.email}</span>
               <button onClick={handleLogout} className="px-5 py-2 border border-gold/30 text-gold text-xs tracking-widest uppercase hover:bg-gold/10 transition-all">Çıkış</button>
             </>
@@ -58,6 +68,7 @@ export default function Navbar() {
             <>
               <Link href="/ilan/yeni" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">İlan Aç</Link>
               <Link href="/mesajlar" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">Mesajlar</Link>
+              {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block font-cormorant text-gold">Admin Panel</Link>}
               <button onClick={handleLogout} className="block font-cormorant text-red-400">Çıkış Yap</button>
             </>
           ) : (
