@@ -48,16 +48,28 @@ export default function AdminPage() {
 
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) { alert("İsim ve fiyat gerekli."); return; }
-    await createProduct(newProduct);
-    alert("Ürün eklendi!");
-    setNewProduct({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
-    setTab("urunler");
+    try {
+      await createProduct(newProduct);
+      alert("Ürün eklendi!");
+      setNewProduct({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
+      setTab("urunler");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Hata";
+      if (msg.includes("Yetkiniz yok")) { alert("Yetkiniz yok."); router.push("/"); return; }
+      alert("Ürün eklenemedi: " + msg);
+    }
   };
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
-    await deleteProduct(id);
-    setProducts(prev => prev.filter(p => p.id !== id));
+    try {
+      await deleteProduct(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Hata";
+      if (msg.includes("Yetkiniz yok")) { alert("Yetkiniz yok."); return; }
+      alert("Silinemedi: " + msg);
+    }
   };
 
   const handleDeleteUser = async (uid: string) => {
@@ -76,8 +88,8 @@ export default function AdminPage() {
     return (
       <main className="admin-fairytale flex items-center justify-center">
         <div className="relative z-10 text-center">
-          <div className="w-14 h-14 rounded-full animate-spin mx-auto mb-4" style={{ border: "2px solid #E21C7030", borderTopColor: "#E21C70" }} />
-          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>✦ Yükleniyor...</p>
+          <div className="w-14 h-14 rounded-full animate-spin mx-auto mb-4" style={{ border: "2px solid #FF5CA830", borderTopColor: "#FF5CA8" }} />
+          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Yükleniyor...</p>
         </div>
       </main>
     );
@@ -94,14 +106,14 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-12">
           <div>
             <LilySmall className="w-8 h-8 opacity-40 mb-2" />
-            <h1 style={{ fontFamily: "var(--font-yuyu)", fontSize: "2rem", color: "#E21C70" }}>Yönetici Paneli</h1>
+            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-shimmer">Yönetici Paneli</h1>
           </div>
-          <button onClick={async () => { await logoutUser(); router.push("/"); }} className="px-5 py-2 rounded-sm" style={{ border: "1px solid #E21C7040", color: "#E21C70", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em" }}>Çıkış</button>
+          <button onClick={async () => { await logoutUser(); router.push("/"); }} className="px-5 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em" }}>Çıkış</button>
         </div>
 
-        <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #7C4EBB20" }}>
+        <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
           {(["istatistik", "urunler", "urun-ekle", "kullanicilar"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#E21C70" : "#872D72" }}>
+            <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
               {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : "Kullanıcılar"}
             </button>
           ))}
@@ -109,11 +121,10 @@ export default function AdminPage() {
 
         {tab === "istatistik" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[{ label: "Toplam Ürün", value: stats.toplamIlan, icon: "🌸" }, { label: "Toplam Kullanıcı", value: stats.toplamKullanici, icon: "🌿" }].map((s, i) => (
+            {[{ label: "Toplam Ürün", value: stats.toplamIlan, color: "#FF5CA8" }, { label: "Toplam Kullanıcı", value: stats.toplamKullanici, color: "#00F0FF" }].map((s, i) => (
               <div key={i} className="fairytale-card rounded-sm p-8 text-center">
-                <span className="text-3xl block mb-3">{s.icon}</span>
-                <p style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem", color: "#E21C70" }}>{s.value}</p>
-                <p style={{ fontFamily: "var(--font-cormorant)", color: "#872D72" }}>{s.label}</p>
+                <p style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem", color: s.color }} className={i === 0 ? "neon-text-pink" : "neon-text-cyan"}>{s.value}</p>
+                <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -121,7 +132,7 @@ export default function AdminPage() {
 
         {tab === "urun-ekle" && (
           <div className="fairytale-card rounded-sm p-8 max-w-xl">
-            <h2 style={{ fontFamily: "var(--font-yuyu)", color: "#E21C70", fontSize: "1.3rem" }} className="mb-6">✦ Yeni Ürün Ekle</h2>
+            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">✦ Yeni Ürün Ekle</h2>
             <div className="space-y-4">
               <input type="text" placeholder="Ürün Adı" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               <textarea placeholder="Açıklama" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} rows={3} className="fairytale-input w-full px-5 py-4 rounded-sm resize-none" style={{ fontFamily: "var(--font-fuzzy)" }} />
@@ -146,18 +157,18 @@ export default function AdminPage() {
               {products.map(p => (
                 <div key={p.id} className="fairytale-card rounded-sm p-5 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-sm flex items-center justify-center flex-shrink-0" style={{ background: "#411E57" }}>
+                    <div className="w-12 h-12 rounded-sm flex items-center justify-center flex-shrink-0" style={{ background: "#1a1040" }}>
                       {p.image ? <img src={p.image} className="w-full h-full object-cover rounded-sm" /> : <LilySmall className="w-6 h-6 opacity-30" />}
                     </div>
                     <div>
-                      <p style={{ fontFamily: "var(--font-yuyu)", color: "#E9CFE8" }}>{p.name}</p>
-                      <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E21C70" }}>₺{p.price.toLocaleString("tr-TR")} · {p.category}</p>
+                      <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{p.name}</p>
+                      <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">₺{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}>· {p.category}</span></p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #AE084940", color: "#AE0849", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕ Sil</button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕ Sil</button>
                 </div>
               ))}
-              {products.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>✦ Henüz ürün yok</p>}
+              {products.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz ürün yok</p>}
             </div>
           </div>
         )}
@@ -167,9 +178,9 @@ export default function AdminPage() {
             {users.map(u => (
               <div key={u.uid} className="fairytale-card rounded-sm p-5 flex items-center justify-between gap-4">
                 <div>
-                  <p style={{ fontFamily: "var(--font-yuyu)", color: "#E9CFE8" }}>{u.name}</p>
-                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>{u.email}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 text-[9px] rounded-sm" style={{ fontFamily: "var(--font-cinzel)", background: u.role === "admin" ? "#E21C7020" : "#7C4EBB15", color: u.role === "admin" ? "#E21C70" : "#7C4EBB" }}>
+                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{u.name}</p>
+                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>{u.email}</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 text-[9px] rounded-sm" style={{ fontFamily: "var(--font-cinzel)", background: u.role === "admin" ? "#FF5CA820" : "#00F0FF15", color: u.role === "admin" ? "#FF5CA8" : "#00F0FF" }}>
                     {u.role === "admin" ? "👑 Admin" : "🌿 Kullanıcı"}
                   </span>
                 </div>
@@ -177,7 +188,7 @@ export default function AdminPage() {
                   <button onClick={() => handleToggleRole(u.uid, u.role)} className="fairytale-btn px-4 py-2 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>
                     {u.role === "admin" ? "User Yap" : "Admin Yap"}
                   </button>
-                  <button onClick={() => handleDeleteUser(u.uid)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #AE084940", color: "#AE0849", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕</button>
+                  <button onClick={() => handleDeleteUser(u.uid)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕</button>
                 </div>
               </div>
             ))}

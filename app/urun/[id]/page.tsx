@@ -22,6 +22,14 @@ function addToCart(product: Product) {
   }
 }
 
+const paintSplashBg = `
+  radial-gradient(ellipse 500px 500px at 10% 20%, #FF5CA820 0%, transparent 70%),
+  radial-gradient(ellipse 400px 400px at 85% 25%, #00F0FF18 0%, transparent 70%),
+  radial-gradient(ellipse 550px 350px at 50% 8%, #BC6CFF15 0%, transparent 70%),
+  radial-gradient(ellipse 350px 500px at 20% 80%, #FFB86B12 0%, transparent 70%),
+  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
+`;
+
 export default function UrunDetayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [product, setProduct] = useState<Product | null>(null);
@@ -33,29 +41,29 @@ export default function UrunDetayPage({ params }: { params: Promise<{ id: string
 
   if (loading) {
     return (
-      <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full animate-spin" style={{ border: "2px solid #7C4EBB30", borderTopColor: "#E21C70" }} />
+      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full animate-spin" style={{ border: "2px solid #BC6CFF30", borderTopColor: "#FF5CA8" }} />
       </main>
     );
   }
 
   if (!product) {
     return (
-      <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex flex-col items-center justify-center">
+      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex flex-col items-center justify-center">
         <LilySmall className="w-20 h-20 opacity-40 mb-4" />
-        <h1 style={{ fontFamily: "var(--font-yuyu)", color: "#E21C70", fontSize: "1.5rem" }}>Ürün bulunamadı</h1>
-        <Link href="/urunler" className="mt-4" style={{ fontFamily: "var(--font-cinzel)", color: "#7C4EBB", fontSize: "11px", letterSpacing: "0.15em" }}>← Ürünler</Link>
+        <h1 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.5rem" }} className="neon-text-pink">Ürün bulunamadı</h1>
+        <Link href="/urunler" className="mt-4" style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "11px", letterSpacing: "0.15em" }}>← Ürünler</Link>
       </main>
     );
   }
 
   return (
-    <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
-        <Link href="/urunler" className="inline-block mb-8" style={{ fontFamily: "var(--font-cinzel)", color: "#7C4EBB", fontSize: "10px", letterSpacing: "0.15em" }}>← Ürünlere Dön</Link>
+        <Link href="/urunler" className="inline-block mb-8" style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "10px", letterSpacing: "0.15em" }}>← Ürünlere Dön</Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="rounded-sm overflow-hidden" style={{ background: "linear-gradient(135deg, #1f1d3a, #411E57)", border: "1px solid #7C4EBB25" }}>
+          <div className="rounded-sm overflow-hidden" style={{ background: "linear-gradient(135deg, #111535, #1a1040)", border: "1px solid #BC6CFF25" }}>
             {product.image ? (
               <img src={product.image} alt={product.name} className="w-full h-80 object-cover" />
             ) : (
@@ -66,24 +74,24 @@ export default function UrunDetayPage({ params }: { params: Promise<{ id: string
           </div>
 
           <div>
-            <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#7C4EBB" }}>{product.category}</span>
+            <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.2em", textTransform: "uppercase", color: "#00F0FF" }}>{product.category}</span>
 
-            <h1 style={{ fontFamily: "var(--font-yuyu)", fontSize: "2rem", color: "#E9CFE8", marginTop: "8px" }}>{product.name}</h1>
+            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem", color: "#E9CFE8", marginTop: "8px" }}>{product.name}</h1>
 
-            <p style={{ fontFamily: "var(--font-fuzzy)", fontSize: "1.8rem", color: "#E21C70", marginTop: "16px" }}>₺{product.price.toLocaleString("tr-TR")}</p>
+            <p style={{ fontFamily: "var(--font-fuzzy)", fontSize: "1.8rem", marginTop: "16px" }} className="neon-text-pink">₺{product.price.toLocaleString("tr-TR")}</p>
 
-            <div className="my-6" style={{ height: "1px", background: "linear-gradient(to right, #7C4EBB40, transparent)" }} />
+            <div className="my-6" style={{ height: "1px", background: "linear-gradient(to right, #BC6CFF40, transparent)" }} />
 
-            <p style={{ fontFamily: "var(--font-cormorant)", color: "#EDABBE", lineHeight: 1.7 }}>{product.description || "Açıklama bulunmuyor."}</p>
+            <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", lineHeight: 1.7 }}>{product.description || "Açıklama bulunmuyor."}</p>
 
             <div className="mt-6 flex items-center gap-4">
-              <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.15em", color: product.stock > 0 ? "#7C4EBB" : "#AE0849" }}>
+              <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.15em", color: product.stock > 0 ? "#00F0FF" : "#FF5CA8" }}>
                 {product.stock > 0 ? `✓ Stokta (${product.stock} adet)` : "✗ Tükendi"}
               </span>
             </div>
 
             {product.stock > 0 && (
-              <button onClick={() => addToCart(product)} className="mt-8 w-full py-4 transition-all hover:translate-y-[-1px]" style={{ background: "linear-gradient(135deg, #E21C70, #872D72)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", border: "1px solid #E21C7060", boxShadow: "0 4px 20px #E21C7030", cursor: "pointer" }}>
+              <button onClick={() => addToCart(product)} className="mt-8 w-full py-4 transition-all hover:translate-y-[-1px]" style={{ background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", border: "1px solid #FF5CA860", boxShadow: "0 4px 20px #FF5CA830, 0 0 30px #BC6CFF20", cursor: "pointer" }}>
                 ✦ Sepete Ekle ✦
               </button>
             )}

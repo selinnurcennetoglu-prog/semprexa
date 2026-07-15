@@ -9,11 +9,10 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot,
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 
 export interface Product {
   id: string;
@@ -45,7 +44,15 @@ export interface UserProfile {
   phoneVerified: boolean;
 }
 
+async function requireAdmin(): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Giriş yapmalısınız.");
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists() || snap.data().role !== "admin") throw new Error("Yetkiniz yok.");
+}
+
 export async function createProduct(data: Omit<Product, "id" | "createdAt">): Promise<string> {
+  await requireAdmin();
   const docRef = await addDoc(collection(db, "products"), {
     ...data,
     createdAt: serverTimestamp(),
@@ -75,9 +82,11 @@ export async function getProduct(id: string): Promise<Product | null> {
 }
 
 export async function deleteProduct(id: string): Promise<void> {
+  await requireAdmin();
   await deleteDoc(doc(db, "products", id));
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<void> {
+  await requireAdmin();
   await setDoc(doc(db, "products", id), data, { merge: true });
 }

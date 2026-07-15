@@ -30,6 +30,15 @@ function checkPassword(p: string): { ok: boolean; msg: string } {
   return { ok: true, msg: "" };
 }
 
+const paintSplashBg = `
+  radial-gradient(ellipse 500px 500px at 10% 15%, #FF5CA825 0%, transparent 70%),
+  radial-gradient(ellipse 400px 400px at 85% 25%, #00F0FF20 0%, transparent 70%),
+  radial-gradient(ellipse 600px 350px at 45% 8%, #BC6CFF18 0%, transparent 70%),
+  radial-gradient(ellipse 350px 500px at 25% 75%, #FFB86B15 0%, transparent 70%),
+  radial-gradient(ellipse 450px 400px at 75% 70%, #FF5CA812 0%, transparent 70%),
+  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
+`;
+
 export default function KayitPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
@@ -68,32 +77,32 @@ export default function KayitPage() {
     `fairytale-input w-full px-5 py-4 rounded-sm ${errors[field] ? "border-red-500!" : ""}`;
 
   return (
-    <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-12">
           <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <h1 style={{ fontFamily: "var(--font-yuyu)", fontSize: "2.5rem", color: "#E21C70" }}>Hesap Oluşturun</h1>
-          <div className="royal-divider mt-4"><span style={{ color: "#7C4EBB" }}>✦</span></div>
+          <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">Hesap Oluşturun</h1>
+          <div className="royal-divider mt-4"><span style={{ color: "#FF5CA8" }}>✦</span></div>
         </div>
 
         <div className="fairytale-frame p-8 space-y-6">
           <div className="space-y-4">
             <div>
               <input type="text" placeholder="Adınız Soyadınız" value={form.name} onChange={(e) => setForm({ ...form, name: sanitize(e.target.value) })} maxLength={100} className={inputClass("name")} style={{ fontFamily: "var(--font-fuzzy)" }} />
-              {errors.name && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.name}</span>}
+              {errors.name && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.name}</span>}
             </div>
             <div>
               <input type="email" placeholder="E-posta Adresiniz" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value.toLowerCase().trim() })} maxLength={254} className={inputClass("email")} style={{ fontFamily: "var(--font-fuzzy)" }} />
-              {errors.email && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.email}</span>}
+              {errors.email && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.email}</span>}
             </div>
             <div>
               <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={15} className={inputClass("phone")} style={{ fontFamily: "var(--font-fuzzy)" }} />
-              {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.phone}</span>}
+              {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.phone}</span>}
             </div>
             <div>
               <input type="password" placeholder="Şifre (8+ krk, büyük+küçük+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />
-              {errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.password}</span>}
-              {form.password && !errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#7C4EBB" }}>✓ Güçlü şifre</span>}
+              {errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.password}</span>}
+              {form.password && !errors.password && <span className="text-xs mt-1 block neon-text-cyan">✓ Güçlü şifre</span>}
             </div>
           </div>
 
@@ -104,8 +113,8 @@ export default function KayitPage() {
           </button>
         </div>
 
-        <p className="text-center mt-8" style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>
-          Hesabınız var mı? <Link href="/giris" className="hover:underline" style={{ color: "#E21C70" }}>Giriş Yapın</Link>
+        <p className="text-center mt-8" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>
+          Hesabınız var mı? <Link href="/giris" className="hover:underline neon-text-pink">Giriş Yapın</Link>
         </p>
       </div>
     </main>
