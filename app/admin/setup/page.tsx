@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import { registerUser } from "../../lib/auth";
 import { LilySmall } from "../../components/Decorations";
 
 export default function AdminSetupPage() {
@@ -20,33 +20,19 @@ export default function AdminSetupPage() {
     if (!name || !email || !password) return setError("Tüm alanları doldurun.");
     if (password.length < 8) return setError("Şifre en az 8 karakter olmalı.");
     setLoading(true);
-    try {
-      const { data: existing } = await supabase.from("users").select("uid").eq("email", email).limit(1);
-      if (existing && existing.length > 0) { setError("Bu e-posta zaten kayıtlı."); setLoading(false); return; }
 
-      const { data, error: authError } = await supabase.auth.signUp({ email, password });
-      if (authError) {
-        if (authError.message.includes("already")) setError("Bu e-posta zaten kayıtlı.");
-        else setError(authError.message);
-        setLoading(false);
-        return;
-      }
-      if (!data.user) { setError("Kayıt başarısız."); setLoading(false); return; }
+    const { user, error: regError } = await registerUser(name, email, password, "");
+    if (regError) { setError(regError); setLoading(false); return; }
 
-      await supabase.from("users").insert({
-        uid: data.user.id,
-        name,
-        email,
-        phone: "",
-        role: "admin",
-        created_at: new Date().toISOString(),
-        phone_verified: true,
-      });
-      setDone(true);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Hata";
-      setError(msg);
-    }
+    const res = await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "updateUserRole", uid: user!.uid, role: "admin" }),
+    });
+    const json = await res.json();
+    if (json.error) { setError(json.error); setLoading(false); return; }
+
+    setDone(true);
     setLoading(false);
   };
 

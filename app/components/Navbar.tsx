@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthChange } from "../lib/auth";
-import { supabase } from "../lib/supabase";
-import { logoutUser } from "../lib/auth";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,6 +31,13 @@ export default function Navbar() {
     return () => window.removeEventListener("storage", updateCart);
   }, []);
 
+  const handleLogout = async () => {
+    const { logoutUser } = await import("../lib/auth");
+    await logoutUser();
+    setUser(null);
+    window.location.href = "/";
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: "rgba(11,15,43,0.95)", borderColor: "#BC6CFF20", backdropFilter: "blur(12px)" }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
@@ -57,7 +62,7 @@ export default function Navbar() {
               </Link>
               {user.isAdmin && <Link href="/admin" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)" }}><span className="neon-text-purple" style={{ fontSize: "inherit", letterSpacing: "inherit" }}>Admin</span></Link>}
               <span className="text-xs neon-text-peach" style={{ fontFamily: "var(--font-cormorant)" }}>{user.name || user.email}</span>
-              <button onClick={async () => { await logoutUser(); window.location.href = "/"; }} className="px-5 py-2 border text-xs tracking-widest uppercase transition-all" style={{ fontFamily: "var(--font-cinzel)", borderColor: "#FF5CA840", color: "#FF5CA8" }}>
+              <button onClick={handleLogout} className="px-5 py-2 border text-xs tracking-widest uppercase transition-all" style={{ fontFamily: "var(--font-cinzel)", borderColor: "#FF5CA840", color: "#FF5CA8" }}>
                 Çıkış
               </button>
             </>
@@ -81,7 +86,7 @@ export default function Navbar() {
             <>
               <Link href="/sepet" onClick={() => setMobileOpen(false)} className="block neon-text-cyan" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Sepet {cartCount > 0 && `(${cartCount})`}</Link>
               {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block neon-text-purple" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Admin Panel</Link>}
-              <button onClick={async () => { await logoutUser(); window.location.href = "/"; }} className="block neon-text-pink" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Çıkış Yap</button>
+              <button onClick={handleLogout} className="block neon-text-pink" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Çıkış Yap</button>
             </>
           ) : (
             <>

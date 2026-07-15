@@ -1,5 +1,3 @@
-import { supabase } from "./supabase";
-
 export interface UserProfile {
   uid: string;
   name: string;
@@ -10,89 +8,87 @@ export interface UserProfile {
   phoneVerified: boolean;
 }
 
+let _accessToken: string | null = null;
+
+export function setAccessToken(token: string | null) { _accessToken = token; }
+export function getAccessToken() { return _accessToken; }
+
+const API = "/api/auth";
+
 export async function registerUser(
-  name: string,
-  email: string,
-  password: string,
-  phone: string
+  name: string, email: string, password: string, phone: string
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      if (error.message.includes("already")) return { user: null, error: "Bu e-posta zaten kayıtlı." };
-      return { user: null, error: error.message };
-    }
-    if (!data.user) return { user: null, error: "Kayıt başarısız." };
-
-    const profile: UserProfile = {
-      uid: data.user.id,
-      name,
-      email,
-      phone,
-      role: "user",
-      createdAt: new Date().toISOString(),
-      phoneVerified: false,
-    };
-
-    await supabase.from("users").insert(profile);
-    return { user: profile };
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "signup", name, email, password, phone }),
+    });
+    const json = await res.json();
+    if (json.error) return { user: null, error: json.error };
+    return { user: json.user };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
-    return { user: null, error: msg };
+    return { user: null, error: err instanceof Error ? err.message : "Bağlantı hatası" };
   }
 }
 
 export async function loginUser(
-  email: string,
-  password: string
+  email: string, password: string
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      if (error.message.includes("Invalid")) return { user: null, error: "E-posta veya şifre hatalı." };
-      return { user: null, error: error.message };
-    }
-    if (!data.user) return { user: null, error: "Giriş başarısız." };
-
-    const { data: profile } = await supabase.from("users").select("*").eq("uid", data.user.id).single();
-    if (profile) return { user: profile as UserProfile };
-
-    return {
-      user: {
-        uid: data.user.id,
-        name: data.user.user_metadata?.name || "",
-        email: data.user.email || "",
-        phone: "",
-        role: "user",
-        createdAt: "",
-        phoneVerified: false,
-      },
-    };
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "login", email, password }),
+    });
+    const json = await res.json();
+    if (json.error) return { user: null, error: json.error };
+    return { user: json.user };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
-    return { user: null, error: msg };
+    return { user: null, error: err instanceof Error ? err.message : "Bağlantı hatası" };
   }
 }
 
 export async function logoutUser(): Promise<void> {
-  await supabase.auth.signOut();
+  setAccessToken(null);
+  if (typeof window !== "undefined") localStorage.removeItem("semprexa_session");
 }
 
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: profile } = await supabase.from("users").select("*").eq("uid", user.id).single();
-  return (profile as UserProfile) || null;
+  try {
+    const headers: Record<string, string> = {};
+    if (_accessToken) headers["authorization"] = `Bearer ${_accessToken}`;
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify({ action: "me" }),
+    });
+    const json = await res.json();
+    return json.user || null;
+  } catch {
+    return null;
+  }
+}
+
+let _listeners: Array<(user: UserProfile | null) => void> = [];
+let _initialized = false;
+
+function notify(user: UserProfile | null) {
+  _listeners.forEach((l) => l(user));
+}
+
+async function checkSession() {
+  const user = await getCurrentUser();
+  notify(user);
 }
 
 export async function onAuthChange(callback: (user: UserProfile | null) => void): Promise<() => void> {
-  const { data: { subscription } } = await supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (session?.user) {
-      const { data: profile } = await supabase.from("users").select("*").eq("uid", session.user.id).single();
-      callback(profile as UserProfile || null);
-    } else {
-      callback(null);
-    }
-  });
-  return () => subscription.unsubscribe();
+  _listeners.push(callback);
+  if (!_initialized) {
+    _initialized = true;
+    checkSession();
+  }
+  return () => {
+    _listeners = _listeners.filter((l) => l !== callback);
+  };
 }

@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, logoutUser } from "../lib/auth";
-import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, type Product, type UserProfile } from "../lib/db";
+import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, type Product } from "../lib/db";
 import { LilySmall } from "../components/Decorations";
+
+interface UserProfile { uid: string; name: string; email: string; phone: string; role: string; created_at: string; phone_verified: boolean; }
 
 function Sparkles() {
   const dots = Array.from({ length: 15 }, (_, i) => ({
@@ -32,7 +34,7 @@ export default function AdminPage() {
     return () => { unsub.then(fn => fn()); };
   }, [router]);
 
-  const loadUsers = async () => { const u = await getUsers(); setUsers(u as UserProfile[]); };
+  const loadUsers = async () => {     const u = await getUsers(); setUsers(u as unknown as UserProfile[]); };
   const loadProducts = async () => { const p = await getProducts(); setProducts(p); };
 
   useEffect(() => {
@@ -49,7 +51,6 @@ export default function AdminPage() {
       setTab("urunler");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Hata";
-      if (msg.includes("Yetkiniz yok")) { alert("Yetkiniz yok."); router.push("/"); return; }
       alert("Ürün eklenemedi: " + msg);
     }
   };
@@ -60,9 +61,7 @@ export default function AdminPage() {
       await deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Hata";
-      if (msg.includes("Yetkiniz yok")) { alert("Yetkiniz yok."); return; }
-      alert("Silinemedi: " + msg);
+      alert("Silinemedi: " + (err instanceof Error ? err.message : "Hata"));
     }
   };
 

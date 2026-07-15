@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthChange } from "../lib/auth";
-import { supabase } from "../lib/supabase";
 import { LilySmall } from "../components/Decorations";
 
 interface CartItem {
