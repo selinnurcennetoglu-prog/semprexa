@@ -3,14 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../lib/firebase";
-import { doc, getDoc, collection, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
-import { logoutUser } from "../lib/auth";
-import { getProducts, createProduct, deleteProduct, type Product } from "../lib/db";
+import { onAuthChange, logoutUser } from "../lib/auth";
+import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, type Product, type UserProfile } from "../lib/db";
 import { LilySmall } from "../components/Decorations";
-
-interface UserProfile { uid: string; name: string; email: string; phone: string; role: string; createdAt: string; phoneVerified: boolean; }
 
 function Sparkles() {
   const dots = Array.from({ length: 15 }, (_, i) => ({
@@ -29,16 +24,15 @@ export default function AdminPage() {
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
+    const unsub = onAuthChange(async (u) => {
       if (!u) { router.push("/admin/giris"); return; }
-      const snap = await getDoc(doc(db, "users", u.uid));
-      if (!snap.exists() || snap.data().role !== "admin") { router.push("/admin/giris"); return; }
+      if (u.role !== "admin") { router.push("/admin/giris"); return; }
       setAdmin(true); setLoading(false);
     });
-    return () => unsub();
+    return () => { unsub.then(fn => fn()); };
   }, [router]);
 
-  const loadUsers = async () => { const snap = await getDocs(collection(db, "users")); setUsers(snap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile))); };
+  const loadUsers = async () => { const u = await getUsers(); setUsers(u as UserProfile[]); };
   const loadProducts = async () => { const p = await getProducts(); setProducts(p); };
 
   useEffect(() => {
@@ -74,13 +68,13 @@ export default function AdminPage() {
 
   const handleDeleteUser = async (uid: string) => {
     if (!confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) return;
-    await deleteDoc(doc(db, "users", uid));
+    await deleteUser(uid);
     setUsers(prev => prev.filter(u => u.uid !== uid));
   };
 
   const handleToggleRole = async (uid: string, role: string) => {
     const newRole = role === "admin" ? "user" : "admin";
-    await updateDoc(doc(db, "users", uid), { role: newRole });
+    await updateUserRole(uid, newRole);
     setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole } : u));
   };
 

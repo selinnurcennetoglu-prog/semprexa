@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import { registerUser } from "../lib/auth";
+import { registerUser, onAuthChange } from "../lib/auth";
 import Captcha from "../components/Captcha";
 import { LilySmall } from "../components/Decorations";
 
@@ -47,8 +45,8 @@ export default function KayitPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => { if (u) router.push("/urunler"); });
-    return () => unsub();
+    const unsub = onAuthChange((u) => { if (u) router.push("/urunler"); });
+    return () => { unsub.then(fn => fn()); };
   }, [router]);
 
   const validate = (): boolean => {

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { onAuthChange } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { LilySmall } from "../components/Decorations";
 
 interface CartItem {
@@ -29,9 +29,9 @@ export default function SepetPage() {
   const [user, setUser] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => { setUser(!!u); });
+    const unsub = onAuthChange((u) => { setUser(!!u); });
     loadCart();
-    return () => unsub();
+    return () => { unsub.then(fn => fn()); };
   }, []);
 
   const loadCart = () => {

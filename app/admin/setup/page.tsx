@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase";
+import { supabase } from "../../lib/supabase";
 import { LilySmall } from "../../components/Decorations";
 
 export default function AdminSetupPage() {
@@ -23,18 +21,31 @@ export default function AdminSetupPage() {
     if (password.length < 8) return setError("Şifre en az 8 karakter olmalı.");
     setLoading(true);
     try {
-      const q = query(collection(db, "users"), where("email", "==", email));
-      const existing = await getDocs(q);
-      if (!existing.empty) { setError("Bu e-posta zaten kayıtlı."); setLoading(false); return; }
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-      await setDoc(doc(db, "users", cred.user.uid), { uid: cred.user.uid, name, email, phone: "", role: "admin", createdAt: new Date().toISOString(), phoneVerified: true });
+      const { data: existing } = await supabase.from("users").select("uid").eq("email", email).limit(1);
+      if (existing && existing.length > 0) { setError("Bu e-posta zaten kayıtlı."); setLoading(false); return; }
+
+      const { data, error: authError } = await supabase.auth.signUp({ email, password });
+      if (authError) {
+        if (authError.message.includes("already")) setError("Bu e-posta zaten kayıtlı.");
+        else setError(authError.message);
+        setLoading(false);
+        return;
+      }
+      if (!data.user) { setError("Kayıt başarısız."); setLoading(false); return; }
+
+      await supabase.from("users").insert({
+        uid: data.user.id,
+        name,
+        email,
+        phone: "",
+        role: "admin",
+        created_at: new Date().toISOString(),
+        phone_verified: true,
+      });
       setDone(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Hata";
-      if (msg.includes("email-already-in-use")) setError("Bu e-posta zaten kayıtlı.");
-      else if (msg.includes("weak-password")) setError("Şifre çok zayıf.");
-      else setError(msg);
+      setError(msg);
     }
     setLoading(false);
   };

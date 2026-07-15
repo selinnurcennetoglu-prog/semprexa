@@ -1,18 +1,4 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { supabase } from "./supabase";
 
 export interface UserProfile {
   uid: string;
@@ -29,13 +15,17 @@ export async function registerUser(
   email: string,
   password: string,
   phone: string
-): Promise<{ user: UserProfile; error?: string }> {
+): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName: name });
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      if (error.message.includes("already")) return { user: null, error: "Bu e-posta zaten kayıtlı." };
+      return { user: null, error: error.message };
+    }
+    if (!data.user) return { user: null, error: "Kayıt başarısız." };
 
     const profile: UserProfile = {
-      uid: cred.user.uid,
+      uid: data.user.id,
       name,
       email,
       phone,
@@ -44,14 +34,11 @@ export async function registerUser(
       phoneVerified: false,
     };
 
-    await setDoc(doc(db, "users", cred.user.uid), profile);
+    await supabase.from("users").insert(profile);
     return { user: profile };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
-    if (msg.includes("email-already-in-use")) return { user: null as unknown as UserProfile, error: "Bu e-posta zaten kayıtlı." };
-    if (msg.includes("weak-password")) return { user: null as unknown as UserProfile, error: "Şifre çok zayıf." };
-    if (msg.includes("invalid-email")) return { user: null as unknown as UserProfile, error: "Geçersiz e-posta adresi." };
-    return { user: null as unknown as UserProfile, error: msg };
+    return { user: null, error: msg };
   }
 }
 
@@ -60,16 +47,21 @@ export async function loginUser(
   password: string
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) {
-      return { user: snap.data() as UserProfile };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.includes("Invalid")) return { user: null, error: "E-posta veya şifre hatalı." };
+      return { user: null, error: error.message };
     }
+    if (!data.user) return { user: null, error: "Giriş başarısız." };
+
+    const { data: profile } = await supabase.from("users").select("*").eq("uid", data.user.id).single();
+    if (profile) return { user: profile as UserProfile };
+
     return {
       user: {
-        uid: cred.user.uid,
-        name: cred.user.displayName || "",
-        email: cred.user.email || "",
+        uid: data.user.id,
+        name: data.user.user_metadata?.name || "",
+        email: data.user.email || "",
         phone: "",
         role: "user",
         createdAt: "",
@@ -78,27 +70,29 @@ export async function loginUser(
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
-    if (msg.includes("user-not-found")) return { user: null, error: "Kullanıcı bulunamadı." };
-    if (msg.includes("wrong-password") || msg.includes("invalid-credential")) return { user: null, error: "E-posta veya şifre hatalı." };
-    if (msg.includes("too-many-requests")) return { user: null, error: "Çok fazla deneme. Biraz bekleyin." };
     return { user: null, error: msg };
   }
 }
 
 export async function logoutUser(): Promise<void> {
-  await signOut(auth);
+  await supabase.auth.signOut();
 }
 
-export async function resetPassword(email: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    await sendPasswordResetEmail(auth, email);
-    return { ok: true };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
-    return { ok: false, error: msg };
-  }
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase.from("users").select("*").eq("uid", user.id).single();
+  return (profile as UserProfile) || null;
 }
 
-export async function markPhoneVerified(uid: string): Promise<void> {
-  await updateDoc(doc(db, "users", uid), { phoneVerified: true });
+export async function onAuthChange(callback: (user: UserProfile | null) => void): Promise<() => void> {
+  const { data: { subscription } } = await supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (session?.user) {
+      const { data: profile } = await supabase.from("users").select("*").eq("uid", session.user.id).single();
+      callback(profile as UserProfile || null);
+    } else {
+      callback(null);
+    }
+  });
+  return () => subscription.unsubscribe();
 }

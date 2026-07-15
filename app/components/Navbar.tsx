@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../lib/firebase";
+import { onAuthChange } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { logoutUser } from "../lib/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -14,18 +13,12 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
+    const unsub = onAuthChange(async (u) => {
       if (u) {
-        try {
-          const snap = await getDoc(doc(db, "users", u.uid));
-          const isAdmin = snap.exists() && snap.data().role === "admin";
-          setUser({ name: u.displayName || "", email: u.email || "", isAdmin });
-        } catch {
-          setUser({ name: u.displayName || "", email: u.email || "", isAdmin: false });
-        }
+        setUser({ name: u.name, email: u.email, isAdmin: u.role === "admin" });
       } else setUser(null);
     });
-    return () => unsub();
+    return () => { unsub.then(fn => fn()); };
   }, []);
 
   useEffect(() => {

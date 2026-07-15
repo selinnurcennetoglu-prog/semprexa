@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import { loginUser } from "../lib/auth";
+import { loginUser, onAuthChange } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
 const paintSplashBg = `
@@ -25,8 +23,8 @@ export default function GirisPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => { if (u) router.push("/urunler"); });
-    return () => unsub();
+    const unsub = onAuthChange((u) => { if (u) router.push("/urunler"); });
+    return () => { unsub.then(fn => fn()); };
   }, [router]);
 
   const handleLogin = async () => {

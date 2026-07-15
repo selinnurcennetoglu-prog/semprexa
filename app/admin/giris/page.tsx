@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../lib/firebase";
-import { loginUser } from "../../lib/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { loginUser, onAuthChange } from "../../lib/auth";
+import { supabase } from "../../lib/supabase";
 import { LilySmall } from "../../components/Decorations";
 
 export default function AdminGirisPage() {
@@ -17,10 +15,10 @@ export default function AdminGirisPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) { const snap = await getDoc(doc(db, "users", u.uid)); if (snap.exists() && snap.data().role === "admin") router.push("/admin"); }
+    const unsub = onAuthChange(async (u) => {
+      if (u && u.role === "admin") router.push("/admin");
     });
-    return () => unsub();
+    return () => { unsub.then(fn => fn()); };
   }, [router]);
 
   const handleLogin = async () => {
