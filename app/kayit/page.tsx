@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { registerUser } from "../lib/auth";
 import Captcha from "../components/Captcha";
+import { LilySmall } from "../components/Decorations";
 
 function sanitize(s: string): string {
   return s.replace(/[<>"'\/\\]/g, "").trim().slice(0, 100);
@@ -37,9 +38,7 @@ export default function KayitPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) router.push("/ilanlar");
-    });
+    const unsub = onAuthStateChanged(auth, (u) => { if (u) router.push("/urunler"); });
     return () => unsub();
   }, [router]);
 
@@ -58,88 +57,55 @@ export default function KayitPage() {
     if (!validate()) return;
     if (!captchaOk) return alert("Robot doğrulamasını tamamlayın.");
     setLoading(true);
-
     const { user, error } = await registerUser(form.name, form.email, form.password, form.phone);
-    if (error) {
-      alert(error);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: form.email,
-          subject: "Hoş Geldiniz - Semprexa",
-          html: `<h2>Hoş geldiniz, ${form.name}!</h2><p>Semprexa hesabınız başarıyla oluşturuldu.</p><p>Finans dünyasına hoş geldiniz.</p>`,
-        }),
-      });
-    } catch {}
-
+    if (error) { alert(error); setLoading(false); return; }
     alert("Kayıt başarılı!");
-    router.push("/ilanlar");
+    router.push("/urunler");
     setLoading(false);
   };
 
   const inputClass = (field: string) =>
-    `w-full px-5 py-4 bg-cream border text-coffee-dark font-cormorant text-base placeholder:text-taupe/40 focus:outline-none transition-colors ${
-      errors[field] ? "border-red-400 focus:border-red-500" : "border-gold/15 focus:border-gold/40"
-    }`;
+    `fairytale-input w-full px-5 py-4 rounded-sm ${errors[field] ? "border-red-500!" : ""}`;
 
   return (
-    <main className="min-h-screen bg-cream pt-24 pb-16 px-6">
+    <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-12">
-          <span className="font-cinzel text-[10px] tracking-[0.5em] uppercase text-gold-dark/60 block mb-3">
-            Kraliyet Davetiyesi
-          </span>
-          <h1 className="font-playfair text-4xl font-bold text-coffee-dark">
-            Hesap <span className="text-gold">Oluşturun</span>
-          </h1>
+          <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
+          <h1 style={{ fontFamily: "var(--font-yuyu)", fontSize: "2.5rem", color: "#E21C70" }}>Hesap Oluşturun</h1>
+          <div className="royal-divider mt-4"><span style={{ color: "#7C4EBB" }}>✦</span></div>
         </div>
 
-        <div className="royal-frame p-8 bg-cream/80 space-y-6">
+        <div className="fairytale-frame p-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <input type="text" placeholder="Adınız Soyadınız" value={form.name} onChange={(e) => setForm({ ...form, name: sanitize(e.target.value) })} maxLength={100} className={inputClass("name")} />
-              {errors.name && <span className="font-cormorant text-xs text-red-500 mt-1 block">{errors.name}</span>}
+              <input type="text" placeholder="Adınız Soyadınız" value={form.name} onChange={(e) => setForm({ ...form, name: sanitize(e.target.value) })} maxLength={100} className={inputClass("name")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              {errors.name && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.name}</span>}
             </div>
             <div>
-              <input type="email" placeholder="E-posta Adresiniz" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value.toLowerCase().trim() })} maxLength={254} className={inputClass("email")} />
-              {errors.email && <span className="font-cormorant text-xs text-red-500 mt-1 block">{errors.email}</span>}
+              <input type="email" placeholder="E-posta Adresiniz" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value.toLowerCase().trim() })} maxLength={254} className={inputClass("email")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              {errors.email && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.email}</span>}
             </div>
             <div>
-              <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={15} className={inputClass("phone")} />
-              {errors.phone && <span className="font-cormorant text-xs text-red-500 mt-1 block">{errors.phone}</span>}
+              <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={15} className={inputClass("phone")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.phone}</span>}
             </div>
             <div>
-              <input type="password" placeholder="Şifre (8+ krk, büyük+küçük+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} />
-              {errors.password && <span className="font-cormorant text-xs text-red-500 mt-1 block">{errors.password}</span>}
-              {form.password && !errors.password && <span className="font-cormorant text-xs text-gold-dark mt-1 block">✓ Güçlü şifre</span>}
+              <input type="password" placeholder="Şifre (8+ krk, büyük+küçük+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              {errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{errors.password}</span>}
+              {form.password && !errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#7C4EBB" }}>✓ Güçlü şifre</span>}
             </div>
-          </div>
-
-          <div className="p-4 bg-royal/5 border border-gold/10">
-            <p className="font-cormorant text-[11px] text-taupe/60">
-              <strong className="text-taupe">Gereksinimler:</strong> 8+ karakter, büyük harf, küçük harf, rakam.
-            </p>
           </div>
 
           <Captcha onVerify={() => setCaptchaOk(true)} />
 
-          <button
-            onClick={handleRegister}
-            disabled={loading}
-            className="w-full py-4 bg-gold text-espresso font-cinzel text-xs tracking-[0.25em] uppercase font-semibold hover:bg-gold-light transition-all disabled:opacity-50"
-          >
-            {loading ? "Kaydediliyor..." : "Kayıt Ol"}
+          <button onClick={handleRegister} disabled={loading} className="fairytale-btn w-full py-4 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
+            {loading ? "Kaydediliyor..." : "✦ Kayıt Ol"}
           </button>
         </div>
 
-        <p className="text-center mt-8 font-cormorant text-sm text-taupe">
-          Hesabınız var mı? <Link href="/giris" className="text-gold-dark hover:text-gold transition-colors">Giriş Yapın</Link>
+        <p className="text-center mt-8" style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>
+          Hesabınız var mı? <Link href="/giris" className="hover:underline" style={{ color: "#E21C70" }}>Giriş Yapın</Link>
         </p>
       </div>
     </main>

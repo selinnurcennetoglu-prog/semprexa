@@ -4,19 +4,19 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { logoutUser } from "../lib/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; isAdmin: boolean } | null>(null);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
         try {
-          const { getDoc, doc } = await import("firebase/firestore");
-          const { db } = await import("../lib/firebase");
           const snap = await getDoc(doc(db, "users", u.uid));
           const isAdmin = snap.exists() && snap.data().role === "admin";
           setUser({ name: u.displayName || "", email: u.email || "", isAdmin });
@@ -28,53 +28,68 @@ export default function Navbar() {
     return () => unsub();
   }, []);
 
-  const handleLogout = async () => {
-    await logoutUser();
-    window.location.href = "/";
-  };
+  useEffect(() => {
+    const updateCart = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem("semprexa_cart") || "[]");
+        setCartCount(cart.reduce((s: number, i: { quantity: number }) => s + i.quantity, 0));
+      } catch { setCartCount(0); }
+    };
+    updateCart();
+    window.addEventListener("storage", updateCart);
+    return () => window.removeEventListener("storage", updateCart);
+  }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-espresso/90 backdrop-blur-md border-b border-gold/10">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: "rgba(25,27,55,0.95)", borderColor: "#7C4EBB20", backdropFilter: "blur(12px)" }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center gap-3">
           <img src="/logo.svg" alt="Semprexa" className="h-10 w-auto" />
+          <span style={{ fontFamily: "var(--font-yuyu)", color: "#E21C70", fontSize: "1.3rem", letterSpacing: "0.05em" }}>Semprexa</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/ilanlar" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">İlanlar</Link>
+          <Link href="/urunler" className="text-sm tracking-widest uppercase hover:text-[#E21C70] transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#EDABBE" }}>Ürünler</Link>
           {user ? (
             <>
-              <Link href="/ilan/yeni" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">İlan Aç</Link>
-              <Link href="/mesajlar" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">Mesajlar</Link>
-              {user.isAdmin && <Link href="/admin" className="font-cormorant text-sm tracking-widest uppercase text-gold hover:text-gold-light transition-colors">Admin</Link>}
-              <span className="font-cormorant text-xs text-gold/40">{user.name || user.email}</span>
-              <button onClick={handleLogout} className="px-5 py-2 border border-gold/30 text-gold text-xs tracking-widest uppercase hover:bg-gold/10 transition-all">Çıkış</button>
+              <Link href="/sepet" className="relative text-sm tracking-widest uppercase hover:text-[#E21C70] transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#EDABBE" }}>
+                Sepet
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-4 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "#E21C70", color: "#fff" }}>
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+              {user.isAdmin && <Link href="/admin" className="text-sm tracking-widest uppercase text-[#7C4EBB] hover:text-[#E21C70] transition-colors" style={{ fontFamily: "var(--font-cinzel)" }}>Admin</Link>}
+              <span className="text-xs" style={{ fontFamily: "var(--font-cormorant)", color: "#872D72" }}>{user.name || user.email}</span>
+              <button onClick={async () => { await logoutUser(); window.location.href = "/"; }} className="px-5 py-2 border text-xs tracking-widest uppercase hover:bg-[#E21C7015] transition-all" style={{ fontFamily: "var(--font-cinzel)", borderColor: "#E21C7040", color: "#E21C70" }}>
+                Çıkış
+              </button>
             </>
           ) : (
             <>
-              <Link href="/giris" className="font-cormorant text-sm tracking-widest uppercase text-sand/60 hover:text-gold transition-colors">Giriş</Link>
-              <Link href="/kayit" className="px-5 py-2 bg-gold text-espresso font-cinzel text-xs tracking-widest uppercase font-semibold hover:bg-gold-light transition-all">Kayıt Ol</Link>
+              <Link href="/giris" className="text-sm tracking-widest uppercase hover:text-[#E21C70] transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#EDABBE" }}>Giriş</Link>
+              <Link href="/kayit" className="px-5 py-2 text-xs tracking-widest uppercase font-semibold hover:bg-[#E21C70] transition-all" style={{ fontFamily: "var(--font-cinzel)", background: "#E21C70", color: "#fff" }}>Kayıt Ol</Link>
             </>
           )}
         </div>
 
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-gold text-2xl">{mobileOpen ? "✕" : "☰"}</button>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-2xl" style={{ color: "#E21C70" }}>{mobileOpen ? "✕" : "☰"}</button>
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-espresso border-t border-gold/10 px-6 py-6 space-y-4">
-          <Link href="/ilanlar" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">İlanlar</Link>
+        <div className="md:hidden px-6 py-6 space-y-4 border-t" style={{ background: "#191B37", borderColor: "#7C4EBB20" }}>
+          <Link href="/urunler" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#EDABBE" }}>Ürünler</Link>
           {user ? (
             <>
-              <Link href="/ilan/yeni" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">İlan Aç</Link>
-              <Link href="/mesajlar" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">Mesajlar</Link>
-              {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block font-cormorant text-gold">Admin Panel</Link>}
-              <button onClick={handleLogout} className="block font-cormorant text-red-400">Çıkış Yap</button>
+              <Link href="/sepet" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#EDABBE" }}>Sepet {cartCount > 0 && `(${cartCount})`}</Link>
+              {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#7C4EBB" }}>Admin Panel</Link>}
+              <button onClick={async () => { await logoutUser(); window.location.href = "/"; }} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#E21C70" }}>Çıkış Yap</button>
             </>
           ) : (
             <>
-              <Link href="/giris" onClick={() => setMobileOpen(false)} className="block font-cormorant text-sand/60 hover:text-gold">Giriş</Link>
-              <Link href="/kayit" onClick={() => setMobileOpen(false)} className="block font-cormorant text-gold">Kayıt Ol</Link>
+              <Link href="/giris" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#EDABBE" }}>Giriş</Link>
+              <Link href="/kayit" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", color: "#E21C70" }}>Kayıt Ol</Link>
             </>
           )}
         </div>

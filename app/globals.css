@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #faf6ef;
-  --color-cream-dark: #f0e8d8;
-  --color-beige: #f0e6d3;
-  --color-sand: #d4c5a9;
-  --color-sand-dark: #b8a88a;
-  --color-gold: #c8a960;
-  --color-gold-light: #dbc48a;
-  --color-gold-dark: #a8884d;
-  --color-gold-muted: #c8a96033;
-  --color-coffee: #6b4c3b;
-  --color-coffee-dark: #3d2b1f;
-  --color-espresso: #2a1a10;
-  --color-taupe: #8a7a6b;
-  --color-royal: #1a0f05;
+  --color-cream: #E9CFE8;
+  --color-cream-dark: #EDABBE;
+  --color-beige: #F966AB;
+  --color-sand: #DE5C8F;
+  --color-sand-dark: #AE0849;
+  --color-gold: #7C4EBB;
+  --color-gold-light: #E21C70;
+  --color-gold-dark: #872D72;
+  --color-gold-muted: #7C4EBB33;
+  --color-coffee: #411E57;
+  --color-coffee-dark: #191B37;
+  --color-espresso: #191B37;
+  --color-taupe: #872D72;
+  --color-royal: #411E57;
 
-  --font-playfair: var(--font-playfair);
+  --font-fuzzy: var(--font-fuzzy);
   --font-cormorant: var(--font-cormorant);
   --font-cinzel: var(--font-cinzel);
 }
 
 body {
-  background: #f5f0e8;
-  color: #3d2b1f;
+  background: #191B37;
+  color: #E9CFE8;
   font-family: var(--font-cormorant), Georgia, serif;
 }
 
@@ -44,33 +44,18 @@ html {
   flex: 1;
   max-width: 120px;
   height: 1px;
-  background: linear-gradient(to var(--dir, right), transparent, #c8a960);
+  background: linear-gradient(to var(--dir, right), transparent, #7C4EBB);
 }
 
 .royal-divider::after {
   --dir: left;
 }
 
-.vintage-noise {
-  position: relative;
-}
-
-.vintage-noise::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  pointer-events: none;
-  z-index: 1;
-}
-
 .royal-frame {
-  border: 1px solid #c8a96040;
+  border: 1px solid #7C4EBB40;
   box-shadow:
-    inset 0 0 0 1px #c8a96015,
-    0 0 0 1px #c8a96015;
+    inset 0 0 0 1px #7C4EBB15,
+    0 0 0 1px #7C4EBB15;
 }
 
 @keyframes shimmer {
@@ -81,11 +66,11 @@ html {
 .gold-shimmer {
   background: linear-gradient(
     90deg,
-    #a8884d 0%,
-    #dbc48a 25%,
-    #c8a960 50%,
-    #dbc48a 75%,
-    #a8884d 100%
+    #872D72 0%,
+    #F966AB 25%,
+    #7C4EBB 50%,
+    #F966AB 75%,
+    #872D72 100%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -106,9 +91,9 @@ html {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: #c8a960;
+  color: #7C4EBB;
   font-size: 0.5rem;
-  background: #f5f0e8;
+  background: #191B37;
   padding: 0 1rem;
   z-index: 2;
 }
@@ -121,7 +106,7 @@ html {
   transform: translate(-50%, -50%);
   width: 300px;
   height: 1px;
-  background: linear-gradient(to right, transparent, #c8a96050, transparent);
+  background: linear-gradient(to right, transparent, #7C4EBB50, transparent);
 }
 
 ::-webkit-scrollbar {
@@ -129,16 +114,16 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0e6d3;
+  background: #191B37;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c8a960;
+  background: #7C4EBB;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8884d;
+  background: #E21C70;
 }
 
 @keyframes shake {
@@ -151,13 +136,36 @@ html {
   animation: shake 0.3s ease-in-out;
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px #7C4EBB30; }
+  50% { box-shadow: 0 0 40px #E21C7040; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ═══════════ PRODUCT CARD ═══════════ */
+
+.product-card {
+  background: linear-gradient(145deg, #1f1d3a, #191B37);
+  border: 1px solid #7C4EBB25;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  border-color: #E21C7060;
+  box-shadow: 0 8px 32px #E21C7020;
+  transform: translateY(-4px);
+}
+
 /* ═══════════ ADMIN FAIRYTALE THEME ═══════════ */
 
 .admin-fairytale {
   background:
-    radial-gradient(ellipse at 20% 0%, #d4a0c420 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, #6b8f5e15 0%, transparent 50%),
-    linear-gradient(180deg, #f5ebe0 0%, #e8d5c4 30%, #dfc8b0 60%, #d4b896 100%);
+    radial-gradient(ellipse at 20% 0%, #872D7220 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, #7C4EBB15 0%, transparent 50%),
+    linear-gradient(180deg, #1f1d3a 0%, #191B37 50%, #151330 100%);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -173,39 +181,15 @@ html {
   pointer-events: none;
 }
 
-.admin-fairytale::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 3px, #8b691405 3px, #8b691405 4px),
-    repeating-linear-gradient(90deg, transparent, transparent 5px, #8b691403 3px, #8b691403 4px);
-  pointer-events: none;
-  opacity: 0.5;
-}
-
 @keyframes sparkle-float {
   0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
   20% { opacity: 1; transform: translateY(-8px) scale(1); }
   80% { opacity: 0.8; transform: translateY(-30px) scale(0.6); }
 }
 
-@keyframes vine-sway {
-  0%, 100% { transform: rotate(0deg) translateY(0); }
-  50% { transform: rotate(2deg) translateY(-3px); }
-}
-
-@keyframes leaf-drift {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
-  25% { transform: translateY(-10px) rotate(15deg); opacity: 1; }
-  50% { transform: translateY(-5px) rotate(-10deg); opacity: 0.8; }
-  75% { transform: translateY(-15px) rotate(8deg); opacity: 0.9; }
-  100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
-}
-
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 15px #c96b8b30, 0 0 30px #6b8f5e15; }
-  50% { box-shadow: 0 0 25px #c96b8b50, 0 0 50px #6b8f5e25; }
+  0%, 100% { box-shadow: 0 0 15px #E21C7030, 0 0 30px #7C4EBB15; }
+  50% { box-shadow: 0 0 25px #E21C7050, 0 0 50px #7C4EBB25; }
 }
 
 .sparkle-dot {
@@ -213,54 +197,27 @@ html {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: radial-gradient(circle, #f0d4e8 0%, #c96b8b 50%, transparent 100%);
+  background: radial-gradient(circle, #F966AB 0%, #E21C70 50%, transparent 100%);
   animation: sparkle-float 3s ease-in-out infinite;
   pointer-events: none;
 }
 
-.leaf-decoration {
-  position: absolute;
-  pointer-events: none;
-  animation: leaf-drift 6s ease-in-out infinite;
-}
-
-.vine-decoration {
-  position: absolute;
-  pointer-events: none;
-  animation: vine-sway 4s ease-in-out infinite;
-}
-
 .fairytale-frame {
-  background: linear-gradient(145deg, #faf3ec, #f0e0d0, #e8d0be);
-  border: 1.5px solid #c96b8b40;
+  background: linear-gradient(145deg, #1f1d3a, #191B37);
+  border: 1.5px solid #E21C7040;
   box-shadow:
-    0 0 0 1px #c96b8b10,
-    0 4px 20px #c96b8b15,
-    inset 0 1px 0 #ffffff60,
-    inset 0 -1px 0 #8b691410;
+    0 0 0 1px #E21C7010,
+    0 4px 20px #E21C7015,
+    inset 0 1px 0 #E9CFE810;
   position: relative;
   animation: glow-pulse 5s ease-in-out infinite;
 }
 
-.fairytale-frame::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  border: 1px solid transparent;
-  background: linear-gradient(135deg, #c96b8b30, transparent 30%, transparent 70%, #6b8f5e30) border-box;
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
 .fairytale-btn {
-  background: linear-gradient(135deg, #c96b8b, #a8507a);
+  background: linear-gradient(135deg, #E21C70, #872D72);
   color: #fff;
-  border: 1px solid #c96b8b60;
-  box-shadow: 0 2px 10px #c96b8b30;
+  border: 1px solid #E21C7060;
+  box-shadow: 0 2px 10px #E21C7030;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -276,8 +233,8 @@ html {
 }
 
 .fairytale-btn:hover {
-  background: linear-gradient(135deg, #d47a9a, #b8608a);
-  box-shadow: 0 4px 20px #c96b8b50;
+  background: linear-gradient(135deg, #F966AB, #E21C70);
+  box-shadow: 0 4px 20px #E21C7050;
   transform: translateY(-1px);
 }
 
@@ -286,16 +243,16 @@ html {
 }
 
 .fairytale-input {
-  background: linear-gradient(145deg, #faf6f0, #f0e8de);
-  border: 1px solid #c96b8b25;
-  color: #3d2b1f;
+  background: #1f1d3a;
+  border: 1px solid #7C4EBB30;
+  color: #E9CFE8;
   transition: all 0.3s ease;
 }
 
 .fairytale-input:focus {
   outline: none;
-  border-color: #c96b8b60;
-  box-shadow: 0 0 0 3px #c96b8b15, 0 0 15px #c96b8b10;
+  border-color: #E21C7060;
+  box-shadow: 0 0 0 3px #E21C7015, 0 0 15px #E21C7010;
 }
 
 .fairytale-tab {
@@ -310,13 +267,13 @@ html {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #c96b8b, #6b8f5e);
+  background: linear-gradient(90deg, #E21C70, #7C4EBB);
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
 
 .fairytale-tab.active {
-  color: #c96b8b;
+  color: #E21C70;
 }
 
 .fairytale-tab.active::after {
@@ -324,14 +281,14 @@ html {
 }
 
 .fairytale-card {
-  background: linear-gradient(145deg, #faf5ee, #f2e5d5, #eadbc8);
-  border: 1px solid #c96b8b20;
-  box-shadow: 0 2px 12px #c96b8b10;
+  background: linear-gradient(145deg, #1f1d3a, #191B37);
+  border: 1px solid #E21C7020;
+  box-shadow: 0 2px 12px #E21C7010;
   transition: all 0.3s ease;
 }
 
 .fairytale-card:hover {
-  box-shadow: 0 4px 24px #c96b8b20;
-  border-color: #c96b8b40;
+  box-shadow: 0 4px 24px #E21C7020;
+  border-color: #E21C7040;
   transform: translateY(-2px);
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { loginUser } from "../lib/auth";
+import { LilySmall } from "../components/Decorations";
 
 export default function GirisPage() {
   const router = useRouter();
@@ -15,9 +16,7 @@ export default function GirisPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) router.push("/ilanlar");
-    });
+    const unsub = onAuthStateChanged(auth, (u) => { if (u) router.push("/urunler"); });
     return () => unsub();
   }, [router]);
 
@@ -25,42 +24,33 @@ export default function GirisPage() {
     setError("");
     if (!email || !password) return setError("Tüm alanları doldurun.");
     setLoading(true);
-
     const { user, error: err } = await loginUser(email, password);
-    if (err) {
-      setError(err);
-      setLoading(false);
-      return;
-    }
-
-    router.push("/ilanlar");
+    if (err) { setError(err); setLoading(false); return; }
+    router.push("/urunler");
   };
 
   return (
-    <main className="min-h-screen bg-cream pt-24 pb-16 px-6">
+    <main style={{ background: "#191B37", minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-12">
-          <span className="font-cinzel text-[10px] tracking-[0.5em] uppercase text-gold-dark/60 block mb-3">Hoş Geldiniz</span>
-          <h1 className="font-playfair text-4xl font-bold text-coffee-dark">
-            Hesabınıza <span className="text-gold">Giriş Yapın</span>
-          </h1>
+          <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
+          <h1 style={{ fontFamily: "var(--font-yuyu)", fontSize: "2.5rem", color: "#E21C70" }}>Giriş Yapın</h1>
+          <div className="royal-divider mt-4"><span style={{ color: "#7C4EBB" }}>✦</span></div>
         </div>
 
-        <div className="royal-frame p-8 bg-cream/80 space-y-6">
-          <div className="space-y-4">
-            <input type="email" placeholder="E-posta Adresiniz" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-5 py-4 bg-cream border border-gold/15 text-coffee-dark font-cormorant text-base placeholder:text-taupe/40 focus:outline-none focus:border-gold/40 transition-colors" />
-            <input type="password" placeholder="Şifreniz" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} className="w-full px-5 py-4 bg-cream border border-gold/15 text-coffee-dark font-cormorant text-base placeholder:text-taupe/40 focus:outline-none focus:border-gold/40 transition-colors" />
-          </div>
+        <div className="fairytale-frame p-8 space-y-6">
+          <input type="email" placeholder="E-posta Adresiniz" value={email} onChange={(e) => setEmail(e.target.value)} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+          <input type="password" placeholder="Şifreniz" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
 
-          {error && <p className="font-cormorant text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-center text-sm" style={{ fontFamily: "var(--font-fuzzy)", color: "#AE0849" }}>{error}</p>}
 
-          <button onClick={handleLogin} disabled={loading} className="w-full py-4 bg-gold text-espresso font-cinzel text-xs tracking-[0.25em] uppercase font-semibold hover:bg-gold-light transition-all disabled:opacity-50">
-            {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+          <button onClick={handleLogin} disabled={loading} className="fairytale-btn w-full py-4 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
+            {loading ? "Giriş yapılıyor..." : "✦ Giriş Yap"}
           </button>
         </div>
 
-        <p className="text-center mt-8 font-cormorant text-sm text-taupe">
-          Hesabınız yok mu? <Link href="/kayit" className="text-gold-dark hover:text-gold transition-colors">Kayıt Olun</Link>
+        <p className="text-center mt-8" style={{ fontFamily: "var(--font-fuzzy)", color: "#872D72" }}>
+          Hesabınız yok mu? <Link href="/kayit" className="hover:underline" style={{ color: "#E21C70" }}>Kayıt Olun</Link>
         </p>
       </div>
     </main>

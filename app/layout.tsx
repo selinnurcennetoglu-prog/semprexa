@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Cormorant_Garamond, Cinzel } from "next/font/google";
+import { Fuzzy_Bubbles, Cormorant_Garamond, Cinzel } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
-import AiWidget from "./components/AiWidget";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const fuzzy = Fuzzy_Bubbles({
+  variable: "--font-fuzzy",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "700"],
 });
 
 const cormorant = Cormorant_Garamond({
@@ -24,7 +23,7 @@ const cinzel = Cinzel({
 
 export const metadata: Metadata = {
   title: "Semprexa",
-  description: "Şirket ortaklığı, hisse alım-satımı ve finansal işlemler platformu.",
+  description: "Semprexa - Ürünlerimizi keşfedin.",
 };
 
 export default function RootLayout({
@@ -35,12 +34,11 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${playfair.variable} ${cormorant.variable} ${cinzel.variable} h-full antialiased`}
+      className={`${fuzzy.variable} ${cormorant.variable} ${cinzel.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Navbar />
         <div className="flex-1">{children}</div>
-        <AiWidget />
       </body>
     </html>
   );
