@@ -46,6 +46,10 @@ function BasariliContent() {
           <div className="mt-4 pt-4" style={{ borderTop: "1px solid #BC6CFF15" }}>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>Siparişiniz en kısa sürede kargoya verilecektir.</p>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }} className="mt-1">Kargo bilgileri e-posta adresinize gönderilecektir.</p>
+            <div className="mt-3 p-3 rounded-sm" style={{ background: "#0d1130", border: "1px solid #00F0FF20" }}>
+              <p style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "9px", letterSpacing: "0.1em" }}>📦 KARGO TAKİP</p>
+              <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }} className="mt-1">Sipariş kodunuzla <a href="/kargo-takip" style={{ color: "#00F0FF", textDecoration: "underline" }}>kargo takip</a> sayfasından durumunu sorgulayabilirsiniz.</p>
+            </div>
           </div>
         </div>
 

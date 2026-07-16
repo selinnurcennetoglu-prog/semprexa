@@ -9,7 +9,7 @@ import { getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
 interface UserProfile { uid: string; name: string; email: string; phone: string; role: string; created_at: string; phone_verified: boolean; }
-interface Order { id: string; order_code: string; user_uid: string; items: string; address: string; total: number; status: string; payment_method: string; created_at: string; }
+interface Order { id: string; order_code: string; user_uid: string; items: string; address: string; total: number; status: string; payment_method: string; created_at: string; cargo_company: string; cargo_tracking: string; cargo_status: string; }
 
 function Sparkles() {
   const dots = Array.from({ length: 15 }, (_, i) => ({
@@ -95,6 +95,19 @@ export default function AdminPage() {
     const newRole = role === "admin" ? "user" : "admin";
     await updateUserRole(uid, newRole);
     setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole } : u));
+  };
+
+  const handleUpdateCargo = async (orderId: string, cargoCompany: string, cargoTracking: string, cargoStatus: string, orderStatus: string) => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ action: "updateCargo", orderId, cargoCompany, cargoTracking, cargoStatus, orderStatus }),
+      });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, cargo_company: cargoCompany, cargo_tracking: cargoTracking, cargo_status: cargoStatus, status: orderStatus } : o));
+    } catch {}
   };
 
   if (loading) {
@@ -209,34 +222,105 @@ export default function AdminPage() {
         )}
 
         {tab === "siparisler" && (
-          <div className="space-y-3">
-            {orders.map(o => (
-              <div key={o.id} className="fairytale-card rounded-sm p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-sm text-[10px] font-bold" style={{ fontFamily: "var(--font-cinzel)", background: "#FF5CA820", color: "#FF5CA8", letterSpacing: "0.1em" }}>{o.order_code || "SPR-000000"}</span>
-                    <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: o.status === "pending" ? "#FFB86B20" : o.status === "completed" ? "#00F0FF20" : "#FF5CA820", color: o.status === "pending" ? "#FFB86B" : o.status === "completed" ? "#00F0FF" : "#FF5CA8" }}>
-                      {o.status === "pending" ? "Beklemede" : o.status === "completed" ? "Tamamlandı" : o.status === "shipped" ? "Kargoda" : o.status}
-                    </span>
+          <div className="space-y-4">
+            {orders.map(o => {
+              const cargoCompanies = ["MNG Kargo", "PTT Kargo", "Aras Kargo", "Yurtiçi Kargo", "Sürat Kargo", "HepsiJET"];
+              const cargoStatuses = [
+                { value: "pending", label: "Beklemede", color: "#FFB86B" },
+                { value: "shipped", label: "Kargoya Verildi", color: "#00F0FF" },
+                { value: "in_transit", label: "Yolda", color: "#BC6CFF" },
+                { value: "delivered", label: "Teslim Edildi", color: "#00F0FF" },
+              ];
+              const orderStatuses = [
+                { value: "pending", label: "Beklemede" },
+                { value: "completed", label: "Tamamlandı" },
+                { value: "cancelled", label: "İptal" },
+              ];
+              const currentCargo = cargoStatuses.find(s => s.value === o.cargo_status) || cargoStatuses[0];
+
+              return (
+                <div key={o.id} className="fairytale-card rounded-sm p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="px-3 py-1 rounded-sm text-[10px] font-bold" style={{ fontFamily: "var(--font-cinzel)", background: "#FF5CA820", color: "#FF5CA8", letterSpacing: "0.1em" }}>{o.order_code}</span>
+                      <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: currentCargo.color + "20", color: currentCargo.color }}>
+                        {currentCargo.label}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: "#BC6CFF20", color: "#BC6CFF" }}>
+                        {orderStatuses.find(s => s.value === o.status)?.label || o.status}
+                      </span>
+                    </div>
+                    <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }}>₺{Number(o.total).toLocaleString("tr-TR")}</span>
                   </div>
-                  <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }}>₺{Number(o.total).toLocaleString("tr-TR")}</span>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4" style={{ fontFamily: "var(--font-cormorant)" }}>
+                    <div>
+                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Kullanıcı</p>
+                      <p style={{ color: "#E9CFE8" }}>{o.user_uid.slice(0, 8)}...</p>
+                    </div>
+                    <div>
+                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Ödeme</p>
+                      <p style={{ color: "#E9CFE8" }}>{o.payment_method}</p>
+                    </div>
+                    <div>
+                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Tarih</p>
+                      <p style={{ color: "#E9CFE8" }}>{new Date(o.created_at).toLocaleDateString("tr-TR")}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-sm" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
+                    <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em", marginBottom: "12px" }}>📦 KARGO YÖNETİMİ</p>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Kargo Firması</label>
+                        <select
+                          value={o.cargo_company}
+                          onChange={(e) => handleUpdateCargo(o.id, e.target.value, o.cargo_tracking, o.cargo_status, o.status)}
+                          className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
+                          style={{ background: "#111535", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)" }}
+                        >
+                          <option value="">Seç...</option>
+                          {cargoCompanies.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Takip Kodu</label>
+                        <input
+                          type="text"
+                          placeholder="Takip numarası"
+                          value={o.cargo_tracking}
+                          onChange={(e) => handleUpdateCargo(o.id, o.cargo_company, e.target.value, o.cargo_status, o.status)}
+                          className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
+                          style={{ background: "#111535", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)" }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Kargo Durumu</label>
+                        <select
+                          value={o.cargo_status}
+                          onChange={(e) => handleUpdateCargo(o.id, o.cargo_company, o.cargo_tracking, e.target.value, o.status)}
+                          className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
+                          style={{ background: "#111535", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)" }}
+                        >
+                          {cargoStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Sipariş Durumu</label>
+                        <select
+                          value={o.status}
+                          onChange={(e) => handleUpdateCargo(o.id, o.cargo_company, o.cargo_tracking, o.cargo_status, e.target.value)}
+                          className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
+                          style={{ background: "#111535", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)" }}
+                        >
+                          {orderStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm" style={{ fontFamily: "var(--font-cormorant)" }}>
-                  <div>
-                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Kullanıcı</p>
-                    <p style={{ color: "#E9CFE8" }}>{o.user_uid.slice(0, 8)}...</p>
-                  </div>
-                  <div>
-                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Ödeme</p>
-                    <p style={{ color: "#E9CFE8" }}>{o.payment_method}</p>
-                  </div>
-                  <div>
-                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Tarih</p>
-                    <p style={{ color: "#E9CFE8" }}>{new Date(o.created_at).toLocaleDateString("tr-TR")}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {orders.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz sipariş yok</p>}
           </div>
         )}

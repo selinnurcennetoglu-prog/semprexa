@@ -88,6 +88,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: data || [] });
     }
 
+    if (action === "updateCargo") {
+      const { data: adminCheck } = await supabaseAdmin
+        .from("users").select("role").eq("uid", userId).single();
+      if (!adminCheck || adminCheck.role !== "admin") {
+        return NextResponse.json({ error: "Yetkiniz yok." }, { status: 403 });
+      }
+
+      const { orderId, cargoCompany, cargoTracking, cargoStatus, orderStatus } = body;
+      if (!orderId) {
+        return NextResponse.json({ error: "Siparis ID gerekli." }, { status: 400 });
+      }
+
+      const updateData: Record<string, string> = {};
+      if (cargoCompany !== undefined) updateData.cargo_company = cargoCompany;
+      if (cargoTracking !== undefined) updateData.cargo_tracking = cargoTracking;
+      if (cargoStatus !== undefined) updateData.cargo_status = cargoStatus;
+      if (orderStatus !== undefined) updateData.status = orderStatus;
+
+      const { error } = await supabaseAdmin
+        .from("orders").update(updateData).eq("id", orderId);
+
+      if (error) {
+        return NextResponse.json({ error: "Guncellenemedi." }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "trackOrder") {
+      const { orderCode } = body;
+      if (!orderCode) {
+        return NextResponse.json({ error: "Siparis kodu gerekli." }, { status: 400 });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("orders")
+        .select("order_code, cargo_company, cargo_tracking, cargo_status, status, created_at, total")
+        .eq("order_code", orderCode.toUpperCase())
+        .single();
+
+      if (error || !data) {
+        return NextResponse.json({ error: "Siparis bulunamadi." }, { status: 404 });
+      }
+
+      return NextResponse.json({ data });
+    }
+
     if (action === "getOrder") {
       const { orderId } = body;
       const { data, error } = await supabaseAdmin

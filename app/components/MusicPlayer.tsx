@@ -7,7 +7,11 @@ interface AudioState {
   nodes: AudioNode[];
 }
 
-export default function MusicPlayer() {
+interface MusicPlayerProps {
+  triggerPlay?: boolean;
+}
+
+export default function MusicPlayer({ triggerPlay }: MusicPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const audioState = useRef<AudioState>({ ctx: null, nodes: [] });
   const hasAutoPlayed = useRef(false);
@@ -145,18 +149,14 @@ export default function MusicPlayer() {
     }
   };
 
-  // Auto-play on first load
+  // Auto-play when triggerPlay becomes true (e.g. when welcome letter opens)
   useEffect(() => {
-    if (hasAutoPlayed.current) return;
-    hasAutoPlayed.current = true;
-
-    const timer = setTimeout(() => {
+    if (triggerPlay && !hasAutoPlayed.current) {
+      hasAutoPlayed.current = true;
       startMusic();
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [triggerPlay]);
 
   return (
     <div

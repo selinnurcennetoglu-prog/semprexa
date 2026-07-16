@@ -146,6 +146,21 @@ export default function WelcomeLetter({ onClose }: WelcomeLetterProps) {
               maxWidth: "520px",
             }}
           >
+            {/* KAPAT BUTONU */}
+            <button
+              onClick={handleClose}
+              className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              style={{
+                background: "#8b000080",
+                border: "1px solid #d4af3750",
+                color: "#d4af37",
+                fontSize: "1.1rem",
+                lineHeight: 1,
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
             {/* Ust altin cerceve */}
             <div className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, #8b0000, #c0392b, #d4af37, #ffd700, #d4af37, #c0392b, #8b0000)", backgroundSize: "200% 100%", animation: "rlGoldShimmer 4s linear infinite" }} />
 

@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS orders (
   total NUMERIC NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'pending',
   payment_method TEXT DEFAULT '',
+  cargo_company TEXT NOT NULL DEFAULT '',
+  cargo_tracking TEXT NOT NULL DEFAULT '',
+  cargo_status TEXT NOT NULL DEFAULT 'pending',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -103,7 +103,7 @@ export default function HomePage() {
       {showWelcome && <WelcomeLetter onClose={closeWelcome} />}
 
       {/* ── MUSIC PLAYER ── */}
-      <MusicPlayer />
+      <MusicPlayer triggerPlay={showWelcome} />
 
       {/* ── SOCIAL CIRCLE ── */}
       <SocialCircle />

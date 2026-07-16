@@ -94,7 +94,7 @@ export default function OdemePage() {
   }, [card.number]);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal >= 300 ? 0 : 29.99;
+  const shipping = subtotal >= 2000 ? 0 : 29.99;
   const total = subtotal + shipping;
 
   const handlePayment = async () => {
@@ -326,7 +326,7 @@ export default function OdemePage() {
                   <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>Kargo</span>
                   <span style={{ fontFamily: "var(--font-cormorant)", color: shipping === 0 ? "#00F0FF" : "#E9CFE8" }}>{shipping === 0 ? "Ücretsiz" : "₺" + shipping.toLocaleString("tr-TR")}</span>
                 </div>
-                {shipping > 0 && <p style={{ fontFamily: "var(--font-cormorant)", color: "#00F0FF", fontSize: "0.75rem" }}>300₺ ve üzeri alışverişlerde kargo ücretsiz!</p>}
+                {shipping > 0 && <p style={{ fontFamily: "var(--font-cormorant)", color: "#00F0FF", fontSize: "0.75rem" }}>2.000₺ ve üzeri alışverişlerde kargo ücretsiz!</p>}
                 <div className="flex justify-between pt-3" style={{ borderTop: "1px solid #BC6CFF30" }}>
                   <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "1rem" }}>Toplam</span>
                   <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="neon-text-pink">₺{total.toLocaleString("tr-TR")}</span>
