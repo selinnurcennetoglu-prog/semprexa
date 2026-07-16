@@ -11,6 +11,15 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+function generateOrderCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "SPR-";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 async function verifyAuth(req: NextRequest): Promise<string | null> {
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) return null;
@@ -45,28 +54,32 @@ export async function POST(req: NextRequest) {
 
       const { data, error } = await supabaseAdmin.from("orders").insert({
         user_uid: userId,
+        order_code: generateOrderCode(),
         items: JSON.stringify(items),
         address: JSON.stringify(address),
         total,
         status: "pending",
         payment_method: paymentMethod || "credit_card",
         created_at: new Date().toISOString(),
-      }).select("id").single();
+      }).select("id, order_code").single();
 
       if (error) {
         console.error("Order create error:", error);
         return NextResponse.json({ error: "Siparis olusturulamadi." }, { status: 500 });
       }
 
-      return NextResponse.json({ orderId: data.id, success: true });
+      return NextResponse.json({ orderId: data.id, orderCode: data.order_code, success: true });
     }
 
     if (action === "getOrders") {
-      const { data, error } = await supabaseAdmin
-        .from("orders")
-        .select("*")
-        .eq("user_uid", userId)
-        .order("created_at", { ascending: false });
+      const { role } = body;
+      let query = supabaseAdmin.from("orders").select("*");
+
+      if (role !== "admin") {
+        query = query.eq("user_uid", userId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
         return NextResponse.json({ data: [] });

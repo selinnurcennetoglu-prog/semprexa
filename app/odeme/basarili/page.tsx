@@ -8,6 +8,7 @@ import { LilySmall } from "../../components/Decorations";
 function BasariliContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId") || "SPX0000000";
+  const orderCode = searchParams.get("orderCode") || "SPR-000000";
 
   useEffect(() => {
     localStorage.removeItem("semprexa_cart");
@@ -40,8 +41,8 @@ function BasariliContent() {
         <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }} className="mb-2">Ödemeniz başarıyla tamamlandı.</p>
 
         <div className="my-8 p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF20" }}>
-          <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.15em" }}>SİPARİŞ NUMARASI</p>
-          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.4rem" }} className="mt-1 neon-text-pink">{orderId}</p>
+          <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.15em" }}>SİPARİŞ KODU</p>
+          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.4rem" }} className="mt-1 neon-text-pink">{orderCode}</p>
           <div className="mt-4 pt-4" style={{ borderTop: "1px solid #BC6CFF15" }}>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>Siparişiniz en kısa sürede kargoya verilecektir.</p>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }} className="mt-1">Kargo bilgileri e-posta adresinize gönderilecektir.</p>

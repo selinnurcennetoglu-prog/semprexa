@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS products (
 -- Orders tablosu (yeni)
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_code TEXT NOT NULL DEFAULT '',
   user_uid TEXT NOT NULL REFERENCES users(uid),
   items JSONB NOT NULL DEFAULT '[]',
   address JSONB NOT NULL DEFAULT '{}',

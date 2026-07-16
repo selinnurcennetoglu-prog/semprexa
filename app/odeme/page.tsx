@@ -154,6 +154,7 @@ export default function OdemePage() {
       const maskedCard = "****" + card.number.replace(/\s/g, "").slice(-4);
       sessionStorage.setItem("semprexa_order", JSON.stringify({
         orderId: orderData.orderId,
+        orderCode: orderData.orderCode,
         maskedCard,
         bankName,
         total,
@@ -164,9 +165,9 @@ export default function OdemePage() {
       await new Promise((r) => setTimeout(r, 1000));
 
       if (card.cvv === "000" || card.number.replace(/\s/g, "").endsWith("0000")) {
-        router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId);
+        router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode));
       } else {
-        router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&bank=" + encodeURIComponent(bankName));
+        router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode) + "&bank=" + encodeURIComponent(bankName));
       }
     } catch (err) {
       console.error("Payment error:", err);

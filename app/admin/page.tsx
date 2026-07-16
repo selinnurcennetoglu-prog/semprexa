@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, logoutUser } from "../lib/auth";
 import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, type Product } from "../lib/db";
+import { getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
 interface UserProfile { uid: string; name: string; email: string; phone: string; role: string; created_at: string; phone_verified: boolean; }
+interface Order { id: string; order_code: string; user_uid: string; items: string; address: string; total: number; status: string; payment_method: string; created_at: string; }
 
 function Sparkles() {
   const dots = Array.from({ length: 15 }, (_, i) => ({
@@ -20,9 +22,10 @@ export default function AdminPage() {
   const router = useRouter();
   const [admin, setAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle">("istatistik");
+  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler">("istatistik");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
 
   useEffect(() => {
@@ -38,11 +41,25 @@ export default function AdminPage() {
 
   const loadUsers = async () => {     const u = await getUsers(); setUsers(u as unknown as UserProfile[]); };
   const loadProducts = async () => { const p = await getProducts(); setProducts(p); };
+  const loadOrders = async () => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ action: "getOrders", role: "admin" }),
+      });
+      const data = await res.json();
+      setOrders(data.data || []);
+    } catch {}
+  };
 
   useEffect(() => {
     if (tab === "kullanicilar") loadUsers();
     if (tab === "urunler") loadProducts();
     if (tab === "istatistik") { loadUsers(); loadProducts(); }
+    if (tab === "siparisler") loadOrders();
   }, [tab]);
 
   const handleAddProduct = async () => {
@@ -108,9 +125,9 @@ export default function AdminPage() {
         </div>
 
         <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
-          {(["istatistik", "urunler", "urun-ekle", "kullanicilar"] as const).map(t => (
+          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
-              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : "Kullanıcılar"}
+              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : "Siparişler"}
             </button>
           ))}
         </div>
@@ -188,6 +205,39 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {tab === "siparisler" && (
+          <div className="space-y-3">
+            {orders.map(o => (
+              <div key={o.id} className="fairytale-card rounded-sm p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-sm text-[10px] font-bold" style={{ fontFamily: "var(--font-cinzel)", background: "#FF5CA820", color: "#FF5CA8", letterSpacing: "0.1em" }}>{o.order_code || "SPR-000000"}</span>
+                    <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: o.status === "pending" ? "#FFB86B20" : o.status === "completed" ? "#00F0FF20" : "#FF5CA820", color: o.status === "pending" ? "#FFB86B" : o.status === "completed" ? "#00F0FF" : "#FF5CA8" }}>
+                      {o.status === "pending" ? "Beklemede" : o.status === "completed" ? "Tamamlandı" : o.status === "shipped" ? "Kargoda" : o.status}
+                    </span>
+                  </div>
+                  <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }}>₺{Number(o.total).toLocaleString("tr-TR")}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm" style={{ fontFamily: "var(--font-cormorant)" }}>
+                  <div>
+                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Kullanıcı</p>
+                    <p style={{ color: "#E9CFE8" }}>{o.user_uid.slice(0, 8)}...</p>
+                  </div>
+                  <div>
+                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Ödeme</p>
+                    <p style={{ color: "#E9CFE8" }}>{o.payment_method}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Tarih</p>
+                    <p style={{ color: "#E9CFE8" }}>{new Date(o.created_at).toLocaleDateString("tr-TR")}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {orders.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz sipariş yok</p>}
           </div>
         )}
       </div>

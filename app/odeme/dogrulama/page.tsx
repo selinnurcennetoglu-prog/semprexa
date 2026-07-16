@@ -9,6 +9,7 @@ function DogrulamaContent() {
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const orderId = searchParams.get("orderId");
+  const orderCode = searchParams.get("orderCode") || "SPR-000000";
   const bank = searchParams.get("bank") || "Banka";
 
   const [code, setCode] = useState("");
@@ -42,7 +43,7 @@ function DogrulamaContent() {
           </div>
           <h1 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.8rem" }} className="mb-3">Ödeme Başarısız</h1>
           <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }} className="mb-2">Ödeme işlemi tamamlanamadı.</p>
-          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }} className="mb-8">Sipariş No: {orderId}</p>
+          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }} className="mb-8">Sipariş Kodu: {orderCode}</p>
           <div className="space-y-3">
             <Link href="/odeme" className="block w-full py-4 rounded-sm" style={{ background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
               Tekrar Dene
@@ -64,7 +65,7 @@ function DogrulamaContent() {
     setVerified(true);
     sessionStorage.removeItem("semprexa_order");
     localStorage.removeItem("semprexa_cart");
-    setTimeout(() => router.push("/odeme/basarili?orderId=" + orderId), 1500);
+    setTimeout(() => router.push("/odeme/basarili?orderId=" + orderId + "&orderCode=" + encodeURIComponent(orderCode)), 1500);
   };
 
   if (verified) {
@@ -103,8 +104,8 @@ function DogrulamaContent() {
           <div className="p-4 rounded-sm mb-6" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
             <div className="flex justify-between items-center">
               <div>
-                <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>SİPARİŞ NO</p>
-                <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>{orderId}</p>
+                <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>SİPARİŞ KODU</p>
+                <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>{orderCode}</p>
               </div>
               <div className="text-right">
                 <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>DOĞRULAMA</p>
