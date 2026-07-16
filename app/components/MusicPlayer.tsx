@@ -26,20 +26,27 @@ export default function MusicPlayer() {
         osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
 
         gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.5);
+        gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.5);
 
         osc1.connect(gain);
         osc2.connect(gain);
         gain.connect(ctx.destination);
 
-        const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 698.46, 659.25, 587.33];
-        const durations = [0.8, 0.6, 0.8, 0.6, 1.0, 0.6, 0.8, 0.6];
+        // Royal melody - more majestic
+        const notes = [
+          392.00, 440.00, 523.25, 587.33, 659.25, 587.33, 523.25, 440.00,
+          523.25, 659.25, 783.99, 659.25, 523.25, 440.00, 392.00, 440.00,
+        ];
+        const durations = [
+          0.6, 0.4, 0.6, 0.4, 0.8, 0.4, 0.6, 0.4,
+          0.6, 0.4, 0.8, 0.4, 0.6, 0.4, 0.8, 0.4,
+        ];
 
         let time = ctx.currentTime;
-        for (let repeat = 0; repeat < 100; repeat++) {
+        for (let repeat = 0; repeat < 50; repeat++) {
           notes.forEach((freq, i) => {
             osc1.frequency.setValueAtTime(freq, time);
-            osc2.frequency.setValueAtTime(freq * 1.25, time);
+            osc2.frequency.setValueAtTime(freq * 1.5, time); // Perfect fifth for royal feel
             time += durations[i];
           });
         }
@@ -71,9 +78,9 @@ export default function MusicPlayer() {
     >
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        @keyframes musicPulse {
-          0%, 100% { box-shadow: 0 0 15px #FF5CA840, 0 0 30px #00F0FF20; }
-          50% { box-shadow: 0 0 25px #FF5CA870, 0 0 50px #00F0FF40; }
+        @keyframes royalMusicPulse {
+          0%, 100% { box-shadow: 0 0 15px #c0392b40, 0 0 30px #d4af3720; }
+          50% { box-shadow: 0 0 25px #c0392b70, 0 0 50px #d4af3740; }
         }
         @keyframes musicBars {
           0%, 100% { height: 4px; }
@@ -83,17 +90,25 @@ export default function MusicPlayer() {
 
       <button
         onClick={togglePlay}
-        className="w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110"
+        className="w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 relative overflow-hidden"
         style={{
           background: playing
-            ? "linear-gradient(135deg, #FF5CA8, #BC6CFF)"
-            : "linear-gradient(135deg, #111535, #1a1040)",
-          border: playing ? "2px solid #FF5CA860" : "2px solid #BC6CFF40",
-          animation: playing ? "musicPulse 2s ease-in-out infinite" : "none",
+            ? "linear-gradient(135deg, #8b0000, #c0392b)"
+            : "linear-gradient(135deg, #12103a, #1a1040)",
+          border: playing ? "2px solid #d4af3760" : "2px solid #d4af3740",
+          animation: playing ? "royalMusicPulse 2s ease-in-out infinite" : "none",
           cursor: "pointer",
         }}
         title={playing ? "Müziği Durdur" : "Müziği Aç"}
       >
+        {/* Gold ring */}
+        <div
+          className="absolute inset-[-2px] rounded-full"
+          style={{
+            border: "1px dashed #d4af3730",
+          }}
+        />
+
         {playing ? (
           <div className="flex items-end gap-[3px] h-5">
             {[0, 1, 2, 3].map((i) => (
@@ -101,7 +116,7 @@ export default function MusicPlayer() {
                 key={i}
                 className="w-[3px] rounded-full"
                 style={{
-                  background: "#fff",
+                  background: "#d4af37",
                   animation: `musicBars 0.${6 + i * 2}s ease-in-out infinite`,
                   animationDelay: `${i * 0.1}s`,
                   height: "4px",
@@ -110,7 +125,7 @@ export default function MusicPlayer() {
             ))}
           </div>
         ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BC6CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18V5l12-2v13" />
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
