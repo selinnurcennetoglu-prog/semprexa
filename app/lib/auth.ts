@@ -116,7 +116,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     if (json.access_token && json.access_token !== _accessToken) {
       _accessToken = json.access_token;
       if (_refreshToken) {
-        storeSession({ access_token: _accessToken, refresh_token: _refreshToken });
+        storeSession({ access_token: json.access_token, refresh_token: _refreshToken });
       }
     }
     return json.user || null;
