@@ -21,7 +21,7 @@ export default function MusicPlayer() {
       // Reverb-like effect with multiple oscillators
       const masterGain = ctx.createGain();
       masterGain.gain.setValueAtTime(0, ctx.currentTime);
-      masterGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.5);
+      masterGain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.5);
       masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 4.8);
       masterGain.connect(ctx.destination);
       allNodes.push(masterGain);
@@ -49,7 +49,7 @@ export default function MusicPlayer() {
         osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
 
         gain.gain.setValueAtTime(0, ctx.currentTime + time);
-        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + time + 0.1);
+        gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + time + 0.1);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + time + dur);
 
         osc.connect(gain);
@@ -77,7 +77,7 @@ export default function MusicPlayer() {
         osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
 
         gain.gain.setValueAtTime(0, ctx.currentTime + time);
-        gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + time + 0.15);
+        gain.gain.linearRampToValueAtTime(0.20, ctx.currentTime + time + 0.15);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + time + dur);
 
         osc.connect(gain);
@@ -105,7 +105,7 @@ export default function MusicPlayer() {
         osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
 
         gain.gain.setValueAtTime(0, ctx.currentTime + time);
-        gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + time + 0.02);
+        gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + time + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + dur);
 
         osc.connect(gain);
