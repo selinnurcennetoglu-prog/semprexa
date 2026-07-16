@@ -60,10 +60,7 @@ export default function SepetPage() {
       router.push("/giris");
       return;
     }
-    alert("Siparişiniz alındı! Teşekkürler.");
-    localStorage.removeItem("semprexa_cart");
-    setCart([]);
-    router.push("/urunler");
+    router.push("/odeme");
   };
 
   return (
