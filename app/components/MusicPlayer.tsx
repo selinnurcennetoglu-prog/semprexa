@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface AudioState {
   ctx: AudioContext | null;
@@ -11,65 +11,91 @@ interface AudioState {
 export default function MusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const audioState = useRef<AudioState>({ ctx: null, osc1: null, osc2: null });
+  const hasAutoPlayed = useRef(false);
 
-  const togglePlay = () => {
-    if (!playing) {
-      try {
-        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
+  const startMusic = () => {
+    if (audioState.current.ctx) return;
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
 
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.3);
 
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
 
-        // Royal melody - more majestic
-        const notes = [
-          392.00, 440.00, 523.25, 587.33, 659.25, 587.33, 523.25, 440.00,
-          523.25, 659.25, 783.99, 659.25, 523.25, 440.00, 392.00, 440.00,
-        ];
-        const durations = [
-          0.6, 0.4, 0.6, 0.4, 0.8, 0.4, 0.6, 0.4,
-          0.6, 0.4, 0.8, 0.4, 0.6, 0.4, 0.8, 0.4,
-        ];
+      const notes = [
+        392.00, 440.00, 523.25, 587.33, 659.25, 587.33, 523.25, 440.00,
+        523.25, 659.25, 783.99, 659.25, 523.25, 440.00, 392.00, 440.00,
+      ];
+      const durations = [
+        0.6, 0.4, 0.6, 0.4, 0.8, 0.4, 0.6, 0.4,
+        0.6, 0.4, 0.8, 0.4, 0.6, 0.4, 0.8, 0.4,
+      ];
 
-        let time = ctx.currentTime;
-        for (let repeat = 0; repeat < 50; repeat++) {
-          notes.forEach((freq, i) => {
-            osc1.frequency.setValueAtTime(freq, time);
-            osc2.frequency.setValueAtTime(freq * 1.5, time); // Perfect fifth for royal feel
-            time += durations[i];
-          });
-        }
-
-        osc1.start();
-        osc2.start();
-
-        audioState.current = { ctx, osc1, osc2 };
-        setPlaying(true);
-      } catch (err) {
-        console.error("Audio error:", err);
+      let time = ctx.currentTime;
+      for (let repeat = 0; repeat < 50; repeat++) {
+        notes.forEach((freq, i) => {
+          osc1.frequency.setValueAtTime(freq, time);
+          osc2.frequency.setValueAtTime(freq * 1.5, time);
+          time += durations[i];
+        });
       }
-    } else {
-      try {
-        const { ctx, osc1, osc2 } = audioState.current;
-        if (osc1) osc1.stop();
-        if (osc2) osc2.stop();
-        if (ctx) ctx.close();
-      } catch {}
-      audioState.current = { ctx: null, osc1: null, osc2: null };
-      setPlaying(false);
+
+      osc1.start();
+      osc2.start();
+
+      audioState.current = { ctx, osc1, osc2 };
+      setPlaying(true);
+    } catch (err) {
+      console.error("Audio error:", err);
     }
   };
+
+  const stopMusic = () => {
+    try {
+      const { ctx, osc1, osc2 } = audioState.current;
+      if (osc1) osc1.stop();
+      if (osc2) osc2.stop();
+      if (ctx) ctx.close();
+    } catch {}
+    audioState.current = { ctx: null, osc1: null, osc2: null };
+    setPlaying(false);
+  };
+
+  const togglePlay = () => {
+    if (playing) {
+      stopMusic();
+    } else {
+      startMusic();
+    }
+  };
+
+  // Auto-play on first load, stop after 5 seconds
+  useEffect(() => {
+    if (hasAutoPlayed.current) return;
+    hasAutoPlayed.current = true;
+
+    const timer = setTimeout(() => {
+      startMusic();
+      // Stop after 5 seconds
+      setTimeout(() => {
+        stopMusic();
+      }, 5000);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -99,15 +125,9 @@ export default function MusicPlayer() {
           animation: playing ? "royalMusicPulse 2s ease-in-out infinite" : "none",
           cursor: "pointer",
         }}
-        title={playing ? "Müziği Durdur" : "Müziği Aç"}
+        title={playing ? "Muzigi Durdur" : "Muzigi Ac"}
       >
-        {/* Gold ring */}
-        <div
-          className="absolute inset-[-2px] rounded-full"
-          style={{
-            border: "1px dashed #d4af3730",
-          }}
-        />
+        <div className="absolute inset-[-2px] rounded-full" style={{ border: "1px dashed #d4af3730" }} />
 
         {playing ? (
           <div className="flex items-end gap-[3px] h-5">
