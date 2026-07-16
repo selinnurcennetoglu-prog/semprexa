@@ -47,6 +47,7 @@ export default function KayitPage() {
   const [captchaOk, setCaptchaOk] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthChange((u) => { if (u) router.push("/urunler"); });
@@ -66,31 +67,61 @@ export default function KayitPage() {
 
   const handleRegister = async () => {
     if (!validate()) return;
-    if (!captchaOk) return alert("Robot doğrulamasını tamamlayın.");
+    if (!captchaOk) return alert("Robot dogrulamasini tamamlayin.");
     setLoading(true);
-    const { user, error } = await registerUser(form.name, form.email, form.password, form.phone);
-    if (error) { alert(error); setLoading(false); return; }
-    alert("Kayıt başarılı!");
-    router.push("/urunler");
+    const result = await registerUser(form.name, form.email, form.password, form.phone);
+    if (result.error) { alert(result.error); setLoading(false); return; }
+    setVerificationSent(true);
     setLoading(false);
   };
 
   const inputClass = (field: string) =>
     `fairytale-input w-full px-5 py-4 rounded-sm ${errors[field] ? "border-red-500!" : ""}`;
 
+  if (verificationSent) {
+    return (
+      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+        <div className="max-w-lg mx-auto">
+          <div className="text-center mb-12">
+            <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
+            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">E-postanizi Kontrol Edin</h1>
+            <div className="royal-divider mt-4"><span style={{ color: "#FF5CA8" }}>&#10022;</span></div>
+          </div>
+          <div className="fairytale-frame p-8 text-center space-y-6">
+            <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center" style={{ background: "#00F0FF15", border: "2px solid #00F0FF30" }}>
+              <span style={{ fontSize: "2rem" }}>&#9993;</span>
+            </div>
+            <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.1rem" }}>
+              <strong>{form.email}</strong> adresine dogrulama linki gonderdik.
+            </p>
+            <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>
+              E-posta kutunuzu (spam klasorunu de) kontrol edin ve dogrulama linkine tiklayin.
+            </p>
+            <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }}>
+              Dogrulama sonrasi <Link href="/giris" className="neon-text-pink hover:underline">Giris Yapin</Link> sayfasindan giris yapabilirsiniz.
+            </p>
+            <Link href="/giris" className="block w-full py-4 rounded-sm" style={{ background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
+              Giris Sayfasina Don
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-12">
           <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">Hesap Oluşturun</h1>
-          <div className="royal-divider mt-4"><span style={{ color: "#FF5CA8" }}>✦</span></div>
+          <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">Hesap Olusturun</h1>
+          <div className="royal-divider mt-4"><span style={{ color: "#FF5CA8" }}>&#10022;</span></div>
         </div>
 
         <div className="fairytale-frame p-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <input type="text" placeholder="Adınız Soyadınız" value={form.name} onChange={(e) => setForm({ ...form, name: sanitize(e.target.value) })} maxLength={100} className={inputClass("name")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <input type="text" placeholder="Adiniz Soyadiniz" value={form.name} onChange={(e) => setForm({ ...form, name: sanitize(e.target.value) })} maxLength={100} className={inputClass("name")} style={{ fontFamily: "var(--font-fuzzy)" }} />
               {errors.name && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.name}</span>}
             </div>
             <div>
@@ -102,21 +133,21 @@ export default function KayitPage() {
               {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.phone}</span>}
             </div>
             <div>
-              <input type="password" placeholder="Şifre (8+ krk, büyük+küçük+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <input type="password" placeholder="Sifre (8+ krk, buyuk+kucuk+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />
               {errors.password && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.password}</span>}
-              {form.password && !errors.password && <span className="text-xs mt-1 block neon-text-cyan">✓ Güçlü şifre</span>}
+              {form.password && !errors.password && <span className="text-xs mt-1 block neon-text-cyan">&#10003; Guclu sifre</span>}
             </div>
           </div>
 
           <Captcha onVerify={() => setCaptchaOk(true)} />
 
           <button onClick={handleRegister} disabled={loading} className="fairytale-btn w-full py-4 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
-            {loading ? "Kaydediliyor..." : "✦ Kayıt Ol"}
+            {loading ? "Kaydediliyor..." : "Kayit Ol"}
           </button>
         </div>
 
         <p className="text-center mt-8" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>
-          Hesabınız var mı? <Link href="/giris" className="hover:underline neon-text-pink">Giriş Yapın</Link>
+          Hesabiniz var mi? <Link href="/giris" className="hover:underline neon-text-pink">Giris Yapin</Link>
         </p>
       </div>
     </main>

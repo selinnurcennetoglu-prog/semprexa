@@ -1,3 +1,5 @@
+import { getAccessToken } from "./auth";
+
 export interface Product {
   id: string;
   name: string;
@@ -12,17 +14,25 @@ export interface Product {
 
 const API = "/api/db";
 
-async function dbPost(body: Record<string, unknown>) {
+async function dbPost(body: Record<string, unknown>, requireAuth = false) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = getAccessToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  } else if (requireAuth) {
+    throw new Error("Giris yapmaniz gerekiyor.");
+  }
+
   const res = await fetch(API, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
   return res.json();
 }
 
 export async function createProduct(data: Omit<Product, "id" | "createdAt">): Promise<string> {
-  const json = await dbPost({ action: "createProduct", data });
+  const json = await dbPost({ action: "createProduct", data }, true);
   if (json.error) throw new Error(json.error);
   return json.id;
 }
@@ -38,26 +48,26 @@ export async function getProduct(id: string): Promise<Product | null> {
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const json = await dbPost({ action: "deleteProduct", id });
+  const json = await dbPost({ action: "deleteProduct", id }, true);
   if (json.error) throw new Error(json.error);
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<void> {
-  const json = await dbPost({ action: "updateProduct", id, data });
+  const json = await dbPost({ action: "updateProduct", id, data }, true);
   if (json.error) throw new Error(json.error);
 }
 
 export async function getUsers(): Promise<Record<string, unknown>[]> {
-  const json = await dbPost({ action: "getUsers" });
+  const json = await dbPost({ action: "getUsers" }, true);
   return json.data || [];
 }
 
 export async function deleteUser(uid: string): Promise<void> {
-  const json = await dbPost({ action: "deleteUser", uid });
+  const json = await dbPost({ action: "deleteUser", uid }, true);
   if (json.error) throw new Error(json.error);
 }
 
 export async function updateUserRole(uid: string, role: string): Promise<void> {
-  const json = await dbPost({ action: "updateUserRole", uid, role });
+  const json = await dbPost({ action: "updateUserRole", uid, role }, true);
   if (json.error) throw new Error(json.error);
 }

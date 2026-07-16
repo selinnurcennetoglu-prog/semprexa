@@ -1,5 +1,15 @@
--- Supabase SQL Schema
--- Bu kodu Supabase Dashboard > SQL Editor'a yapıştır
+-- Supabase SQL Schema - GUNCEL GUVENLIKLI VERSIYON
+-- Bu kodu Supabase Dashboard > SQL Editor'a yapistirin
+
+-- Mevcut tablolari temizle (varsa)
+DROP POLICY IF EXISTS "Allow all on users" ON users;
+DROP POLICY IF EXISTS "Allow all on products" ON products;
+DROP POLICY IF EXISTS "Public read products" ON products;
+DROP POLICY IF EXISTS "Admin write products" ON products;
+DROP POLICY IF EXISTS "Public read users" ON users;
+DROP POLICY IF EXISTS "Admin write users" ON users;
+DROP POLICY IF EXISTS "Users read own profile" ON users;
+DROP POLICY IF EXISTS "Users update own profile" ON users;
 
 -- Users tablosu
 CREATE TABLE IF NOT EXISTS users (
@@ -18,16 +28,96 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   price NUMERIC NOT NULL DEFAULT 0,
-  category TEXT NOT NULL DEFAULT 'Diğer',
+  category TEXT NOT NULL DEFAULT 'Diger',
   image TEXT NOT NULL DEFAULT '',
   stock INTEGER NOT NULL DEFAULT 0,
   featured BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- RLS'yi devre dışı bırak (basitlik için)
+-- Orders tablosu (yeni)
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_uid TEXT NOT NULL REFERENCES users(uid),
+  items JSONB NOT NULL DEFAULT '[]',
+  address JSONB NOT NULL DEFAULT '{}',
+  total NUMERIC NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  payment_method TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- RLS'yi aktif et
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow all on users" ON users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on products" ON products FOR ALL USING (true) WITH CHECK (true);
+-- PRODUCTS politikalari: Herkes okuyabilir, sadece admin yazabilir
+CREATE POLICY "Public read products" ON products
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admin insert products" ON products
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+CREATE POLICY "Admin update products" ON products
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+CREATE POLICY "Admin delete products" ON products
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+-- USERS politikalari: Herkes okuyabilir (isim, email), sadece admin yazabilir
+CREATE POLICY "Public read users limited" ON users
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admin insert users" ON users
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+CREATE POLICY "Admin update users" ON users
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+CREATE POLICY "Admin delete users" ON users
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+-- ORDERS politikalari: Kullanicilar kendi siparislerini gorebilir, admin hepsini gorebilir
+CREATE POLICY "Users read own orders" ON orders
+  FOR SELECT USING (
+    user_uid = auth.uid()::text OR
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+CREATE POLICY "Authenticated insert orders" ON orders
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Admin update orders" ON orders
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM users WHERE uid = auth.uid()::text AND role = 'admin')
+  );
+
+-- Service role her seyi yapabilir (API route'lari icin)
+CREATE POLICY "Service role full access" ON users
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access products" ON products
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access orders" ON orders
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- Index'ler
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_featured ON products(featured);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_uid);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

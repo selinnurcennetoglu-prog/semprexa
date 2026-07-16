@@ -1,47 +1,114 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, Session, User } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, limit = 30, windowMs = 60000): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= limit) return false;
+  entry.count++;
+  return true;
+}
+
+function getIp(req: NextRequest): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+}
+
+async function verifyAuth(req: NextRequest): Promise<{ user: User; session: Session | null } | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const token = authHeader.slice(7);
+  if (!token) return null;
+
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) return null;
+    const { data: sessionData } = await supabase.auth.getSession();
+    return { user: data.user, session: sessionData.session };
+  } catch {
+    return null;
+  }
+}
+
+async function requireAdmin(req: NextRequest): Promise<{ user: User; profile: Record<string, unknown> } | NextResponse> {
+  const auth = await verifyAuth(req);
+  if (!auth) {
+    return NextResponse.json({ error: "Giris yapmaniz gerekiyor." }, { status: 401 });
+  }
+
+  const { data: profile } = await supabaseAdmin.from("users").select("*").eq("uid", auth.user.id).single();
+  if (!profile || profile.role !== "admin") {
+    return NextResponse.json({ error: "Yetkiniz yok." }, { status: 403 });
+  }
+
+  return { user: auth.user, profile };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { action, id, data: updateData, filters, uid, role } = await req.json();
+    const ip = getIp(req);
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json({ error: "Cok fazla istek. Biraz bekleyin." }, { status: 429 });
+    }
 
-    if (action === "getProducts") {
+    const body = await req.json();
+    const { action } = body;
+
+    if (action === "getProducts" || action === "getProduct") {
       let query = supabase.from("products").select("*").order("created_at", { ascending: false });
-      if (filters?.category && filters.category !== "Tümü") {
-        query = query.eq("category", filters.category);
+
+      if (action === "getProduct" && body.id) {
+        const { data, error } = await supabase.from("products").select("*").eq("id", body.id).single();
+        if (error || !data) return NextResponse.json({ data: null });
+        return NextResponse.json({ data: {
+          id: data.id, name: data.name, description: data.description, price: data.price,
+          category: data.category, image: data.image, stock: data.stock, featured: data.featured, createdAt: data.created_at,
+        }});
       }
+
+      if (body.filters?.category && body.filters.category !== "Tumü") {
+        query = query.eq("category", body.filters.category);
+      }
+
       const { data, error } = await query;
       if (error) return NextResponse.json({ error: error.message });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let results = (data || []).map((p: any) => ({
         id: p.id, name: String(p.name), description: String(p.description || ""), price: Number(p.price),
         category: String(p.category), image: String(p.image || ""), stock: Number(p.stock), featured: Boolean(p.featured), createdAt: p.created_at,
       }));
-      if (filters?.search) {
-        const s = filters.search.toLowerCase();
+
+      if (body.filters?.search) {
+        const s = body.filters.search.toLowerCase();
         results = results.filter((p) => p.name.toLowerCase().includes(s) || p.description.toLowerCase().includes(s));
       }
+
       return NextResponse.json({ data: results });
     }
 
-    if (action === "getProduct") {
-      const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
-      if (error || !data) return NextResponse.json({ data: null });
-      return NextResponse.json({ data: {
-        id: data.id, name: data.name, description: data.description, price: data.price,
-        category: data.category, image: data.image, stock: data.stock, featured: data.featured, createdAt: data.created_at,
-      }});
-    }
+    const adminAuth = await requireAdmin(req);
+    if (adminAuth instanceof NextResponse) return adminAuth;
 
     if (action === "createProduct") {
-      const { data: result, error } = await supabase.from("products").insert({
-        name: updateData.name, description: updateData.description, price: updateData.price,
-        category: updateData.category, image: updateData.image, stock: updateData.stock, featured: updateData.featured,
+      const { data: result, error } = await supabaseAdmin.from("products").insert({
+        name: body.data.name, description: body.data.description, price: body.data.price,
+        category: body.data.category, image: body.data.image, stock: body.data.stock, featured: body.data.featured,
         created_at: new Date().toISOString(),
       }).select("id").single();
       if (error) return NextResponse.json({ error: error.message });
@@ -49,48 +116,48 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "deleteProduct") {
-      const { error } = await supabase.from("products").delete().eq("id", id);
+      const { error } = await supabaseAdmin.from("products").delete().eq("id", body.id);
       if (error) return NextResponse.json({ error: error.message });
       return NextResponse.json({ ok: true });
     }
 
     if (action === "updateProduct") {
       const updatePayload: Record<string, unknown> = {};
-      if (updateData) {
-        if (updateData.name !== undefined) updatePayload.name = updateData.name;
-        if (updateData.description !== undefined) updatePayload.description = updateData.description;
-        if (updateData.price !== undefined) updatePayload.price = updateData.price;
-        if (updateData.category !== undefined) updatePayload.category = updateData.category;
-        if (updateData.image !== undefined) updatePayload.image = updateData.image;
-        if (updateData.stock !== undefined) updatePayload.stock = updateData.stock;
-        if (updateData.featured !== undefined) updatePayload.featured = updateData.featured;
+      if (body.data) {
+        if (body.data.name !== undefined) updatePayload.name = body.data.name;
+        if (body.data.description !== undefined) updatePayload.description = body.data.description;
+        if (body.data.price !== undefined) updatePayload.price = body.data.price;
+        if (body.data.category !== undefined) updatePayload.category = body.data.category;
+        if (body.data.image !== undefined) updatePayload.image = body.data.image;
+        if (body.data.stock !== undefined) updatePayload.stock = body.data.stock;
+        if (body.data.featured !== undefined) updatePayload.featured = body.data.featured;
       }
-      const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
+      const { error } = await supabaseAdmin.from("products").update(updatePayload).eq("id", body.id);
       if (error) return NextResponse.json({ error: error.message });
       return NextResponse.json({ ok: true });
     }
 
     if (action === "getUsers") {
-      const { data, error } = await supabase.from("users").select("*");
+      const { data, error } = await supabaseAdmin.from("users").select("*");
       if (error) return NextResponse.json({ data: [] });
       return NextResponse.json({ data });
     }
 
     if (action === "deleteUser") {
-      const { error } = await supabase.from("users").delete().eq("uid", uid);
+      const { error } = await supabaseAdmin.from("users").delete().eq("uid", body.uid);
       if (error) return NextResponse.json({ error: error.message });
       return NextResponse.json({ ok: true });
     }
 
     if (action === "updateUserRole") {
-      const { error } = await supabase.from("users").update({ role }).eq("uid", uid);
+      const { error } = await supabaseAdmin.from("users").update({ role: body.role }).eq("uid", body.uid);
       if (error) return NextResponse.json({ error: error.message });
       return NextResponse.json({ ok: true });
     }
 
     return NextResponse.json({ error: "Bilinmeyen action" });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Sunucu hatası";
+    const msg = err instanceof Error ? err.message : "Sunucu hatasi";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

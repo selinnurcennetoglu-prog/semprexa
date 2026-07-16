@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { onAuthChange } from "../lib/auth";
+import { onAuthChange, getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
 interface CartItem {
@@ -99,44 +99,79 @@ export default function OdemePage() {
 
   const handlePayment = async () => {
     if (!address.fullName || !address.phone || !address.city || !address.district || !address.neighborhood || !address.fullAddress) {
-      alert("Lütfen tüm adres bilgilerini doldurun.");
+      alert("Lutfen tum adres bilgilerini doldurun.");
       return;
     }
     if (card.number.replace(/\s/g, "").length < 16) {
-      alert("Geçerli bir kart numarası girin.");
+      alert("Gecerli bir kart numarasi girin.");
       return;
     }
     if (card.expiry.replace(/\D/g, "").length < 4) {
-      alert("Geçerli bir son kullanma tarihi girin.");
+      alert("Gecerli bir son kullanma tarihi girin.");
       return;
     }
     if (card.cvv.length < 3) {
-      alert("Geçerli bir CVV girin.");
+      alert("Gecerli bir CVV girin.");
       return;
     }
     if (!card.name) {
-      alert("Kart üzerindeki ismi girin.");
+      alert("Kart uzerindeki ismi girin.");
       return;
     }
 
     setProcessing(true);
 
-    const orderData = {
-      cart,
-      address,
-      card: { name: card.name, number: card.number.replace(/\s/g, ""), expiry: card.expiry, cvv: card.cvv },
-      total,
-      bankName,
-      orderId: "SPX" + Date.now(),
-    };
-    sessionStorage.setItem("semprexa_order", JSON.stringify(orderData));
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("Oturumunuz suresi dolmus. Lutfen tekrar giris yapin.");
+        setProcessing(false);
+        return;
+      }
 
-    await new Promise((r) => setTimeout(r, 1500));
+      const orderRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: "createOrder",
+          items: cart,
+          address,
+          total,
+          paymentMethod: bankName || "credit_card",
+        }),
+      });
 
-    if (card.cvv === "000" || card.number.replace(/\s/g, "").endsWith("0000")) {
-      router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId);
-    } else {
-      router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&bank=" + encodeURIComponent(bankName));
+      const orderData = await orderRes.json();
+      if (!orderData.success || !orderData.orderId) {
+        alert("Siparis olusturulamadi. Lutfen tekrar deneyin.");
+        setProcessing(false);
+        return;
+      }
+
+      const maskedCard = "****" + card.number.replace(/\s/g, "").slice(-4);
+      sessionStorage.setItem("semprexa_order", JSON.stringify({
+        orderId: orderData.orderId,
+        maskedCard,
+        bankName,
+        total,
+        cart,
+        address,
+      }));
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      if (card.cvv === "000" || card.number.replace(/\s/g, "").endsWith("0000")) {
+        router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId);
+      } else {
+        router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&bank=" + encodeURIComponent(bankName));
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Odeme sirasinda bir hata olustu.");
+      setProcessing(false);
     }
   };
 
