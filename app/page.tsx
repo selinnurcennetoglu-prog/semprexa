@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getProducts, type Product } from "./lib/db";
 import { LilyLarge, LilyMedium, LilySmall, PetalFloat, Butterfly, IvyVine, NeonTree, RoseFlower, DaisyFlower, Rosebud, LeafCluster } from "./components/Decorations";
+import WelcomeLetter from "./components/WelcomeLetter";
+import MusicPlayer from "./components/MusicPlayer";
+import SocialCircle from "./components/SocialCircle";
 
 function FallingPetals() {
   const petals = Array.from({ length: 25 }, (_, i) => ({
@@ -54,10 +57,22 @@ function Butterflies() {
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     getProducts().then((p) => { setProducts(p.slice(0, 6)); setLoading(false); }).catch(() => setLoading(false));
+    // Show welcome letter after a short delay
+    const hasVisited = sessionStorage.getItem("semprexa_welcomed");
+    if (!hasVisited) {
+      const timer = setTimeout(() => setShowWelcome(true), 800);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  const closeWelcome = () => {
+    setShowWelcome(false);
+    sessionStorage.setItem("semprexa_welcomed", "true");
+  };
 
   return (
     <main style={{
@@ -83,6 +98,15 @@ export default function HomePage() {
       <FallingPetals />
       <Sparkles />
       <Butterflies />
+
+      {/* ── WELCOME LETTER ── */}
+      {showWelcome && <WelcomeLetter onClose={closeWelcome} />}
+
+      {/* ── MUSIC PLAYER ── */}
+      <MusicPlayer />
+
+      {/* ── SOCIAL CIRCLE ── */}
+      <SocialCircle />
 
       {/* ── SARMAŞIK (IVY VINES) ── */}
       <IvyVine variant="left" className="absolute left-0 top-0 w-16 h-96 animate-vine-sway opacity-60 hidden lg:block" style={{ animationDelay: "0s" }} />
