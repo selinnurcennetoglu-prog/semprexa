@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL DEFAULT '',
   phone TEXT NOT NULL DEFAULT '',
+  gender TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL DEFAULT 'user',
   created_at TEXT NOT NULL DEFAULT (now()::text),
   phone_verified BOOLEAN NOT NULL DEFAULT false
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS products (
   image TEXT NOT NULL DEFAULT '',
   stock INTEGER NOT NULL DEFAULT 0,
   featured BOOLEAN NOT NULL DEFAULT false,
+  sizes JSONB NOT NULL DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -125,3 +127,17 @@ CREATE INDEX IF NOT EXISTS idx_products_featured ON products(featured);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_uid);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Reviews tablosu
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id),
+  user_uid TEXT NOT NULL,
+  rating INTEGER NOT NULL DEFAULT 5,
+  comment TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Service role full access reviews" ON reviews FOR ALL USING (true) WITH CHECK (true);
+CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);

@@ -43,7 +43,7 @@ const paintSplashBg = `
 
 export default function KayitPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", gender: "" });
   const [captchaOk, setCaptchaOk] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export default function KayitPage() {
     if (!validate()) return;
     if (!captchaOk) return alert("Robot dogrulamasini tamamlayin.");
     setLoading(true);
-    const result = await registerUser(form.name, form.email, form.password, form.phone);
+    const result = await registerUser(form.name, form.email, form.password, form.phone, form.gender);
     if (result.error) { alert(result.error); setLoading(false); return; }
     setVerificationSent(true);
     setLoading(false);
@@ -131,6 +131,13 @@ export default function KayitPage() {
             <div>
               <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhone(e.target.value) })} maxLength={15} className={inputClass("phone")} style={{ fontFamily: "var(--font-fuzzy)" }} />
               {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.phone}</span>}
+            </div>
+            <div>
+              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)", color: form.gender ? "#E9CFE8" : "#BC6CFF80" }}>
+                <option value="">Cinsiyet Seçin</option>
+                <option value="erkek">Erkek</option>
+                <option value="kadin">Kadın</option>
+              </select>
             </div>
             <div>
               <input type="password" placeholder="Sifre (8+ krk, buyuk+kucuk+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />

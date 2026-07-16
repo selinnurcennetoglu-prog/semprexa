@@ -21,7 +21,7 @@ export default function AdminSetupPage() {
     if (password.length < 8) return setError("Şifre en az 8 karakter olmalı.");
     setLoading(true);
 
-    const { user, error: regError } = await registerUser(name, email, password, "");
+    const { user, error: regError } = await registerUser(name, email, password, "", "");
     if (regError) { setError(regError); setLoading(false); return; }
 
     const res = await fetch("/api/db", {

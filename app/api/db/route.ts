@@ -77,7 +77,9 @@ export async function POST(req: NextRequest) {
         if (error || !data) return NextResponse.json({ data: null });
         return NextResponse.json({ data: {
           id: data.id, name: data.name, description: data.description, price: data.price,
-          category: data.category, image: data.image, stock: data.stock, featured: data.featured, createdAt: data.created_at,
+          category: data.category, image: data.image, stock: data.stock, featured: data.featured,
+          sizes: Array.isArray(data.sizes) ? data.sizes : (typeof data.sizes === "string" ? JSON.parse(data.sizes || "[]") : []),
+          createdAt: data.created_at,
         }});
       }
 
@@ -91,7 +93,9 @@ export async function POST(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let results = (data || []).map((p: any) => ({
         id: p.id, name: String(p.name), description: String(p.description || ""), price: Number(p.price),
-        category: String(p.category), image: String(p.image || ""), stock: Number(p.stock), featured: Boolean(p.featured), createdAt: p.created_at,
+        category: String(p.category), image: String(p.image || ""), stock: Number(p.stock), featured: Boolean(p.featured),
+        sizes: Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === "string" ? JSON.parse(p.sizes || "[]") : []),
+        createdAt: p.created_at,
       }));
 
       if (body.filters?.search) {
@@ -109,6 +113,7 @@ export async function POST(req: NextRequest) {
       const { data: result, error } = await supabaseAdmin.from("products").insert({
         name: body.data.name, description: body.data.description, price: body.data.price,
         category: body.data.category, image: body.data.image, stock: body.data.stock, featured: body.data.featured,
+        sizes: JSON.stringify(body.data.sizes || []),
         created_at: new Date().toISOString(),
       }).select("id").single();
       if (error) return NextResponse.json({ error: error.message });
@@ -131,6 +136,7 @@ export async function POST(req: NextRequest) {
         if (body.data.image !== undefined) updatePayload.image = body.data.image;
         if (body.data.stock !== undefined) updatePayload.stock = body.data.stock;
         if (body.data.featured !== undefined) updatePayload.featured = body.data.featured;
+        if (body.data.sizes !== undefined) updatePayload.sizes = JSON.stringify(body.data.sizes);
       }
       const { error } = await supabaseAdmin.from("products").update(updatePayload).eq("id", body.id);
       if (error) return NextResponse.json({ error: error.message });
@@ -153,6 +159,29 @@ export async function POST(req: NextRequest) {
       const { error } = await supabaseAdmin.from("users").update({ role: body.role }).eq("uid", body.uid);
       if (error) return NextResponse.json({ error: error.message });
       return NextResponse.json({ ok: true });
+    }
+
+    if (action === "addReview") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris yapmaniz gerekiyor." }, { status: 401 });
+
+      const { data: prof } = await supabaseAdmin.from("users").select("role").eq("uid", auth.user.id).single();
+      if (!prof || prof.role !== "admin") return NextResponse.json({ error: "Yalnizca admin yorum ekleyebilir." }, { status: 403 });
+
+      const { productId, userId, rating, comment } = body;
+      const { error } = await supabaseAdmin.from("reviews").insert({
+        product_id: productId, user_uid: userId || auth.user.id,
+        rating: Math.min(5, Math.max(1, rating || 5)), comment: comment || "",
+        created_at: new Date().toISOString(),
+      });
+      if (error) return NextResponse.json({ error: error.message });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "getReviews") {
+      const { data, error } = await supabaseAdmin.from("reviews").select("*").eq("product_id", body.productId).order("created_at", { ascending: false });
+      if (error) return NextResponse.json({ data: [] });
+      return NextResponse.json({ data: data || [] });
     }
 
     return NextResponse.json({ error: "Bilinmeyen action" });

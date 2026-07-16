@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, logoutUser } from "../lib/auth";
-import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, type Product } from "../lib/db";
+import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, addReview, type Product } from "../lib/db";
 import { getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
@@ -20,19 +20,22 @@ function Sparkles() {
 
 export default function AdminPage() {
   const router = useRouter();
-  const [admin, setAdmin] = useState(false);
+  const [admin, setAdmin] = useState<{ uid: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler">("istatistik");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
+  const [reviewModal, setReviewModal] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] as string[] });
 
   useEffect(() => {
     const unsub = onAuthChange(async (u) => {
       if (!u) { router.push("/admin/giris"); return; }
       if (u.role !== "admin") { router.push("/admin/giris"); return; }
-      setAdmin(true); setLoading(false);
+      setAdmin({ uid: u.uid }); setLoading(false);
       loadUsers();
       loadProducts();
     });
@@ -67,7 +70,7 @@ export default function AdminPage() {
     try {
       await createProduct(newProduct);
       alert("Ürün eklendi!");
-      setNewProduct({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false });
+      setNewProduct({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] });
       setTab("urunler");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Hata";
@@ -95,6 +98,18 @@ export default function AdminPage() {
     const newRole = role === "admin" ? "user" : "admin";
     await updateUserRole(uid, newRole);
     setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole } : u));
+  };
+
+  const handleAddReview = async (productId: string) => {
+    try {
+      await addReview(productId, admin!.uid, reviewRating, reviewComment);
+      alert("Yorum eklendi!");
+      setReviewModal(null);
+      setReviewComment("");
+      setReviewRating(5);
+    } catch (err: unknown) {
+      alert("Yorum eklenemedi: " + (err instanceof Error ? err.message : "Hata"));
+    }
   };
 
   const handleUpdateCargo = async (orderId: string, cargoCompany: string, cargoTracking: string, cargoStatus: string, orderStatus: string) => {
@@ -170,6 +185,23 @@ export default function AdminPage() {
                 {["Giyim", "Aksesuar", "Dekorasyon", "Takı", "Çanta", "Elektronik", "Diğer"].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <input type="text" placeholder="Görsel URL (opsiyonel)" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <div>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF", fontSize: "10px", letterSpacing: "0.15em", display: "block", marginBottom: "8px" }}>BEDEN SEÇENEKLERİ</label>
+                <div className="flex flex-wrap gap-2">
+                  {["XS", "S", "M", "L", "XL", "XXL", "36", "37", "38", "39", "40", "41", "42", "43", "44"].map(size => (
+                    <button key={size} type="button" onClick={() => {
+                      const sizes = newProduct.sizes.includes(size) ? newProduct.sizes.filter(s => s !== size) : [...newProduct.sizes, size];
+                      setNewProduct({ ...newProduct, sizes });
+                    }} className="px-3 py-1.5 rounded-sm text-[10px] transition-all" style={{
+                      fontFamily: "var(--font-cinzel)", letterSpacing: "0.05em",
+                      background: newProduct.sizes.includes(size) ? "linear-gradient(135deg, #FF5CA8, #BC6CFF)" : "#0d1130",
+                      border: newProduct.sizes.includes(size) ? "1px solid #FF5CA860" : "1px solid #BC6CFF30",
+                      color: newProduct.sizes.includes(size) ? "#fff" : "#BC6CFF",
+                      cursor: "pointer",
+                    }}>{size}</button>
+                  ))}
+                </div>
+              </div>
               <button onClick={handleAddProduct} className="fairytale-btn w-full py-4 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
                 ✦ Ürünü Ekle
               </button>
@@ -191,7 +223,10 @@ export default function AdminPage() {
                       <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">₺{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}>· {p.category}</span></p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕ Sil</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => { setReviewModal(p.id); setReviewRating(5); setReviewComment(""); }} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FFB86B40", color: "#FFB86B", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>★ Yorum</button>
+                    <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕ Sil</button>
+                  </div>
                 </div>
               ))}
               {products.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz ürün yok</p>}
@@ -325,6 +360,41 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* YORUM EKLEME MODALI */}
+      {reviewModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4" style={{ background: "#0B0F2Bf0", backdropFilter: "blur(8px)" }} onClick={() => setReviewModal(null)}>
+          <div className="w-full max-w-md p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF30" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#FFB86B", fontSize: "1.2rem" }} className="mb-4">★ Yorum / Puan Ekle</h3>
+
+            <div className="mb-4">
+              <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>PUAN</label>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <button key={i} onClick={() => setReviewRating(i)} className="text-2xl transition-all hover:scale-110" style={{ color: i <= reviewRating ? "#FFB86B" : "#BC6CFF30", cursor: "pointer" }}>★</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>YORUM</label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Yorum yazın..."
+                rows={4}
+                className="w-full px-4 py-3 rounded-sm mt-2 outline-none resize-none"
+                style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setReviewModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>İPTAL</button>
+              <button onClick={() => handleAddReview(reviewModal)} className="flex-1 py-3 rounded-sm" style={{ background: "linear-gradient(135deg, #FFB86B, #FF5CA8)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>EKLE</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

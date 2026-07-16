@@ -3,6 +3,7 @@ export interface UserProfile {
   name: string;
   email: string;
   phone: string;
+  gender: string;
   role: string;
   created_at: string;
   phone_verified: boolean;
@@ -66,10 +67,10 @@ async function apiCall(body: Record<string, unknown>) {
 }
 
 export async function registerUser(
-  name: string, email: string, password: string, phone: string
+  name: string, email: string, password: string, phone: string, gender: string
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const json = await apiCall({ action: "signup", name, email, password, phone });
+    const json = await apiCall({ action: "signup", name, email, password, phone, gender });
     if (json.error) return { user: null, error: json.error };
     if (json.access_token && json.refresh_token) {
       storeSession({ access_token: json.access_token, refresh_token: json.refresh_token });

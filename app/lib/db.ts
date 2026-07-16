@@ -9,7 +9,17 @@ export interface Product {
   image: string;
   stock: number;
   featured: boolean;
+  sizes: string[];
   createdAt: string;
+}
+
+export interface Review {
+  id: string;
+  product_id: string;
+  user_uid: string;
+  rating: number;
+  comment: string;
+  created_at: string;
 }
 
 const API = "/api/db";
@@ -70,4 +80,14 @@ export async function deleteUser(uid: string): Promise<void> {
 export async function updateUserRole(uid: string, role: string): Promise<void> {
   const json = await dbPost({ action: "updateUserRole", uid, role }, true);
   if (json.error) throw new Error(json.error);
+}
+
+export async function addReview(productId: string, userId: string, rating: number, comment: string): Promise<void> {
+  const json = await dbPost({ action: "addReview", productId, userId, rating, comment }, true);
+  if (json.error) throw new Error(json.error);
+}
+
+export async function getReviews(productId: string): Promise<Review[]> {
+  const json = await dbPost({ action: "getReviews", productId });
+  return json.data || [];
 }

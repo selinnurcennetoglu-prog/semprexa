@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
       const password = body.password || "";
       const name = sanitizeInput(body.name || "");
       const phone = sanitizeInput(body.phone || "");
+      const gender = sanitizeInput(body.gender || "");
 
       if (!email || !password || !name) {
         return NextResponse.json({ error: "Tum alanlar gerekli." });
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
       }
 
       const profile = {
-        uid: data.user.id, name, email, phone, role: "user",
+        uid: data.user.id, name, email, phone, gender, role: "user",
         created_at: new Date().toISOString(), phone_verified: false,
       };
       await supabase.from("users").insert(profile);
