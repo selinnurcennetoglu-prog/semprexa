@@ -502,3 +502,110 @@ html {
   border-color: #FF5CA840;
   transform: translateY(-2px);
 }
+
+/* ═══════════ IVY VINE ANIMATIONS ═══════════ */
+
+@keyframes vine-grow {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  10% { opacity: 0.3; }
+  100% { stroke-dashoffset: 0; opacity: 0.3; }
+}
+
+@keyframes vine-sway {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25% { transform: rotate(1.5deg) translateX(3px); }
+  50% { transform: rotate(-1deg) translateX(-2px); }
+  75% { transform: rotate(1deg) translateX(2px); }
+}
+
+@keyframes vine-sway-reverse {
+  0%, 100% { transform: scaleX(-1) rotate(0deg) translateX(0); }
+  25% { transform: scaleX(-1) rotate(1.5deg) translateX(3px); }
+  50% { transform: scaleX(-1) rotate(-1deg) translateX(-2px); }
+  75% { transform: scaleX(-1) rotate(1deg) translateX(2px); }
+}
+
+@keyframes leaf-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.15; }
+  50% { transform: scale(1.1) rotate(5deg); opacity: 0.22; }
+}
+
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  50% { transform: rotate(-0.3deg); }
+  75% { transform: rotate(0.4deg); }
+}
+
+@keyframes flower-multiply {
+  0%, 100% { transform: scale(1); opacity: 0.2; }
+  33% { transform: scale(1.15); opacity: 0.3; }
+  66% { transform: scale(0.95); opacity: 0.18; }
+}
+
+@keyframes bud-bloom {
+  0%, 100% { transform: scale(0.9) rotate(-3deg); opacity: 0.2; }
+  50% { transform: scale(1.1) rotate(3deg); opacity: 0.35; }
+}
+
+.animate-vine-sway {
+  animation: vine-sway 8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-vine-sway-reverse {
+  animation: vine-sway-reverse 9s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-tree-sway {
+  animation: tree-sway 10s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-leaf-breathe {
+  animation: leaf-breathe 5s ease-in-out infinite;
+}
+
+.animate-flower-multiply {
+  animation: flower-multiply 6s ease-in-out infinite;
+}
+
+.animate-bud-bloom {
+  animation: bud-bloom 4.5s ease-in-out infinite;
+}
+
+.vine-main {
+  stroke-dasharray: 1000;
+  animation: vine-grow 4s ease-out forwards;
+}
+
+/* ═══════════ MULTIPLYING FLOWERS ═══════════ */
+
+.flower-cluster {
+  position: relative;
+}
+
+.flower-cluster::before,
+.flower-cluster::after {
+  content: "";
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  opacity: 0.08;
+}
+
+.flower-cluster::before {
+  top: -20%;
+  left: -10%;
+  background: radial-gradient(circle, #FF5CA8 0%, transparent 70%);
+  animation: flower-multiply 7s ease-in-out infinite;
+}
+
+.flower-cluster::after {
+  bottom: -15%;
+  right: -10%;
+  background: radial-gradient(circle, #00F0FF 0%, transparent 70%);
+  animation: flower-multiply 8s ease-in-out infinite 1s;
+}

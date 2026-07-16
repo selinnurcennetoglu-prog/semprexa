@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getProducts, type Product } from "./lib/db";
-import { LilyLarge, LilyMedium, LilySmall, PetalFloat, Butterfly } from "./components/Decorations";
+import { LilyLarge, LilyMedium, LilySmall, PetalFloat, Butterfly, IvyVine, NeonTree, RoseFlower, DaisyFlower, Rosebud, LeafCluster } from "./components/Decorations";
 
 function FallingPetals() {
   const petals = Array.from({ length: 25 }, (_, i) => ({
@@ -84,6 +84,42 @@ export default function HomePage() {
       <Sparkles />
       <Butterflies />
 
+      {/* ── SARMAŞIK (IVY VINES) ── */}
+      <IvyVine variant="left" className="absolute left-0 top-0 w-16 h-96 animate-vine-sway opacity-60 hidden lg:block" style={{ animationDelay: "0s" }} />
+      <IvyVine variant="right" className="absolute right-0 top-0 w-16 h-96 animate-vine-sway-reverse opacity-55 hidden lg:block" style={{ animationDelay: "1s" }} />
+      <IvyVine variant="left" className="absolute left-[5%] top-[20%] w-12 h-72 animate-vine-sway opacity-40 hidden xl:block" style={{ animationDelay: "2s" }} />
+      <IvyVine variant="right" className="absolute right-[5%] top-[25%] w-12 h-72 animate-vine-sway-reverse opacity-35 hidden xl:block" style={{ animationDelay: "3s" }} />
+      <IvyVine variant="left" className="absolute left-0 bottom-0 w-14 h-80 animate-vine-sway opacity-45 hidden lg:block" style={{ animationDelay: "4s" }} />
+      <IvyVine variant="right" className="absolute right-0 bottom-0 w-14 h-80 animate-vine-sway-reverse opacity-40 hidden lg:block" style={{ animationDelay: "5s" }} />
+
+      {/* ── NEON AĞAÇLAR ── */}
+      <NeonTree className="absolute left-[-2%] bottom-0 w-40 h-72 animate-tree-sway opacity-50 hidden xl:block" style={{ animationDelay: "0s" }} />
+      <NeonTree className="absolute right-[-2%] bottom-0 w-40 h-72 animate-tree-sway opacity-45 hidden xl:block" style={{ animationDelay: "2s" }} />
+      <NeonTree className="absolute left-[8%] bottom-[5%] w-28 h-52 animate-tree-sway opacity-30 hidden 2xl:block" style={{ animationDelay: "1s" }} />
+      <NeonTree className="absolute right-[8%] bottom-[5%] w-28 h-52 animate-tree-sway opacity-28 hidden 2xl:block" style={{ animationDelay: "3s" }} />
+
+      {/* ── ÇOĞALAN ÇİÇEKLER ── */}
+      <RoseFlower className="absolute left-[12%] top-[15%] w-16 h-20 animate-flower-multiply opacity-35 hidden lg:block" style={{ animationDelay: "0s" }} />
+      <RoseFlower className="absolute right-[12%] top-[18%] w-14 h-18 animate-flower-multiply opacity-30 hidden lg:block" style={{ animationDelay: "2s" }} />
+      <RoseFlower className="absolute left-[25%] top-[70%] w-12 h-16 animate-bud-bloom opacity-25 hidden xl:block" style={{ animationDelay: "1s" }} />
+      <RoseFlower className="absolute right-[25%] top-[65%] w-12 h-16 animate-bud-bloom opacity-22 hidden xl:block" style={{ animationDelay: "3s" }} />
+
+      <DaisyFlower className="absolute left-[18%] top-[35%] w-14 h-18 animate-flower-multiply opacity-30 hidden lg:block" style={{ animationDelay: "1.5s" }} />
+      <DaisyFlower className="absolute right-[18%] top-[40%] w-12 h-16 animate-flower-multiply opacity-25 hidden lg:block" style={{ animationDelay: "3.5s" }} />
+      <DaisyFlower className="absolute left-[35%] top-[80%] w-10 h-14 animate-bud-bloom opacity-20 hidden xl:block" style={{ animationDelay: "0.5s" }} />
+      <DaisyFlower className="absolute right-[35%] top-[75%] w-10 h-14 animate-bud-bloom opacity-18 hidden xl:block" style={{ animationDelay: "2.5s" }} />
+
+      <Rosebud className="absolute left-[8%] top-[55%] w-10 h-14 animate-bud-bloom opacity-28 hidden lg:block" style={{ animationDelay: "0.8s" }} />
+      <Rosebud className="absolute right-[8%] top-[50%] w-10 h-14 animate-bud-bloom opacity-25 hidden lg:block" style={{ animationDelay: "2.8s" }} />
+      <Rosebud className="absolute left-[22%] bottom-[25%] w-8 h-12 animate-flower-multiply opacity-20 hidden xl:block" style={{ animationDelay: "1.8s" }} />
+      <Rosebud className="absolute right-[22%] bottom-[20%] w-8 h-12 animate-flower-multiply opacity-18 hidden xl:block" style={{ animationDelay: "3.8s" }} />
+
+      {/* ── YAPRAK KÜMELERİ ── */}
+      <LeafCluster className="absolute left-[5%] top-[30%] w-12 h-8 animate-leaf-breathe opacity-25 hidden lg:block" style={{ animationDelay: "0s" }} />
+      <LeafCluster className="absolute right-[5%] top-[35%] w-12 h-8 animate-leaf-breathe opacity-22 hidden lg:block" style={{ animationDelay: "2s" }} />
+      <LeafCluster className="absolute left-[15%] bottom-[35%] w-10 h-6 animate-leaf-breathe opacity-18 hidden xl:block" style={{ animationDelay: "1s" }} />
+      <LeafCluster className="absolute right-[15%] bottom-[30%] w-10 h-6 animate-leaf-breathe opacity-15 hidden xl:block" style={{ animationDelay: "3s" }} />
+
       {/* ── LILY SÜSLEMELERİ ── */}
       <LilyLarge className="absolute left-0 top-10 w-36 h-52 animate-lily-sway opacity-50 hidden lg:block" style={{ animationDelay: "0s" }} />
       <LilyMedium className="absolute left-12 top-[40%] w-24 h-36 animate-lily-float opacity-40 hidden lg:block" style={{ animationDelay: "1s" }} />
@@ -99,6 +135,12 @@ export default function HomePage() {
       <LilyLarge className="absolute right-20 bottom-[8%] w-28 h-44 animate-lily-sway opacity-20 hidden xl:block" style={{ animationDelay: "4s" }} />
       <LilyMedium className="absolute left-[8%] top-[70%] w-18 h-28 animate-lily-sway opacity-15 hidden xl:block" style={{ animationDelay: "2.2s" }} />
       <LilyMedium className="absolute right-[8%] top-[65%] w-18 h-28 animate-lily-sway-reverse opacity-15 hidden xl:block" style={{ animationDelay: "3.2s" }} />
+      <LilySmall className="absolute left-[40%] top-[12%] w-10 h-14 animate-petal-bloom opacity-15 hidden 2xl:block" style={{ animationDelay: "0.3s" }} />
+      <LilySmall className="absolute right-[40%] top-[14%] w-10 h-14 animate-petal-bloom opacity-12 hidden 2xl:block" style={{ animationDelay: "1.3s" }} />
+      <LilyLarge className="absolute left-[3%] top-[45%] w-20 h-32 animate-lily-sway opacity-18 hidden 2xl:block" style={{ animationDelay: "5s" }} />
+      <LilyLarge className="absolute right-[3%] top-[42%] w-20 h-32 animate-lily-sway-reverse opacity-15 hidden 2xl:block" style={{ animationDelay: "6s" }} />
+      <LilyMedium className="absolute left-[45%] bottom-[10%] w-16 h-24 animate-lily-float opacity-12 hidden 2xl:block" style={{ animationDelay: "4.2s" }} />
+      <LilyMedium className="absolute right-[45%] bottom-[12%] w-16 h-24 animate-lily-float opacity-10 hidden 2xl:block" style={{ animationDelay: "5.2s" }} />
 
       {/* Hero */}
       <section className="relative z-10 pt-32 pb-20 px-6 text-center">
