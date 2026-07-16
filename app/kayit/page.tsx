@@ -11,6 +11,10 @@ function sanitize(s: string): string {
   return s.replace(/[<>"'\/\\]/g, "").trim().slice(0, 100);
 }
 
+function sanitizePhone(s: string): string {
+  return s.replace(/[<>"'\/\\]/g, "").trim().slice(0, 15);
+}
+
 function validateEmail(e: string): boolean {
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(e) && e.length <= 254;
 }
@@ -94,7 +98,7 @@ export default function KayitPage() {
               {errors.email && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.email}</span>}
             </div>
             <div>
-              <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={15} className={inputClass("phone")} style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <input type="tel" placeholder="Telefon (+90 5XX XXX XX XX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhone(e.target.value) })} maxLength={15} className={inputClass("phone")} style={{ fontFamily: "var(--font-fuzzy)" }} />
               {errors.phone && <span className="text-xs mt-1 block" style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8" }}>{errors.phone}</span>}
             </div>
             <div>

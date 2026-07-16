@@ -54,6 +54,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    if (action === "updateProduct") {
+      const updatePayload: Record<string, unknown> = {};
+      if (updateData) {
+        if (updateData.name !== undefined) updatePayload.name = updateData.name;
+        if (updateData.description !== undefined) updatePayload.description = updateData.description;
+        if (updateData.price !== undefined) updatePayload.price = updateData.price;
+        if (updateData.category !== undefined) updatePayload.category = updateData.category;
+        if (updateData.image !== undefined) updatePayload.image = updateData.image;
+        if (updateData.stock !== undefined) updatePayload.stock = updateData.stock;
+        if (updateData.featured !== undefined) updatePayload.featured = updateData.featured;
+      }
+      const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
+      if (error) return NextResponse.json({ error: error.message });
+      return NextResponse.json({ ok: true });
+    }
+
     if (action === "getUsers") {
       const { data, error } = await supabase.from("users").select("*");
       if (error) return NextResponse.json({ data: [] });

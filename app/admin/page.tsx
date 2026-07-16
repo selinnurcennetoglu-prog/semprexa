@@ -30,6 +30,8 @@ export default function AdminPage() {
       if (!u) { router.push("/admin/giris"); return; }
       if (u.role !== "admin") { router.push("/admin/giris"); return; }
       setAdmin(true); setLoading(false);
+      loadUsers();
+      loadProducts();
     });
     return () => { unsub.then(fn => fn()); };
   }, [router]);
@@ -40,6 +42,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "kullanicilar") loadUsers();
     if (tab === "urunler") loadProducts();
+    if (tab === "istatistik") { loadUsers(); loadProducts(); }
   }, [tab]);
 
   const handleAddProduct = async () => {
