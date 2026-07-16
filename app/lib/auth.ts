@@ -130,9 +130,11 @@ async function tryRefresh(): Promise<boolean> {
   try {
     const json = await apiCall({ action: "refresh", refresh_token: _refreshToken });
     if (json.access_token) {
-      _accessToken = json.access_token;
-      _refreshToken = json.refresh_token || _refreshToken;
-      storeSession({ access_token: _accessToken, refresh_token: _refreshToken });
+      const newAccess = json.access_token as string;
+      const newRefresh = json.refresh_token as string || _refreshToken!;
+      _accessToken = newAccess;
+      _refreshToken = newRefresh;
+      storeSession({ access_token: newAccess, refresh_token: newRefresh });
       return true;
     }
   } catch {}
