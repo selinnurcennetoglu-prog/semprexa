@@ -12,7 +12,7 @@ export default function SocialCircle() {
       icon: "♪",
       color: "#c0392b",
       bg: "#c0392b20",
-      label: "MÜZİK ELÇİSİ",
+      label: "TIKTOK",
     },
     {
       name: "Instagram",
@@ -20,7 +20,7 @@ export default function SocialCircle() {
       icon: "✿",
       color: "#d4af37",
       bg: "#d4af3720",
-      label: "GÖRSEL ELÇİ",
+      label: "INSTAGRAM",
     },
     {
       name: "E-posta",
@@ -28,7 +28,7 @@ export default function SocialCircle() {
       icon: "✉",
       color: "#8b0000",
       bg: "#8b000020",
-      label: "MEKTUP ELÇİSİ",
+      label: "E-POSTA",
     },
   ];
 

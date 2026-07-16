@@ -4,58 +4,125 @@ import { useState, useRef, useEffect } from "react";
 
 interface AudioState {
   ctx: AudioContext | null;
-  osc1: OscillatorNode | null;
-  osc2: OscillatorNode | null;
+  nodes: AudioNode[];
 }
 
 export default function MusicPlayer() {
   const [playing, setPlaying] = useState(false);
-  const audioState = useRef<AudioState>({ ctx: null, osc1: null, osc2: null });
+  const audioState = useRef<AudioState>({ ctx: null, nodes: [] });
   const hasAutoPlayed = useRef(false);
 
   const startMusic = () => {
     if (audioState.current.ctx) return;
     try {
       const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const allNodes: AudioNode[] = [];
 
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+      // Reverb-like effect with multiple oscillators
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.5);
+      masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 4.8);
+      masterGain.connect(ctx.destination);
+      allNodes.push(masterGain);
 
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.3);
-
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(ctx.destination);
-
-      const notes = [
-        392.00, 440.00, 523.25, 587.33, 659.25, 587.33, 523.25, 440.00,
-        523.25, 659.25, 783.99, 659.25, 523.25, 440.00, 392.00, 440.00,
+      // Soft pad sound - dreamy ambient
+      const padNotes = [
+        // Phrase 1 - gentle rise
+        { freq: 261.63, time: 0, dur: 0.8 },    // C4
+        { freq: 329.63, time: 0.4, dur: 0.8 },   // E4
+        { freq: 392.00, time: 0.8, dur: 1.0 },   // G4
+        { freq: 440.00, time: 1.2, dur: 0.6 },   // A4
+        { freq: 392.00, time: 1.6, dur: 0.8 },   // G4
+        // Phrase 2 - gentle fall
+        { freq: 349.23, time: 2.2, dur: 0.8 },   // F4
+        { freq: 329.63, time: 2.6, dur: 0.6 },   // E4
+        { freq: 293.66, time: 3.0, dur: 0.8 },   // D4
+        { freq: 261.63, time: 3.4, dur: 1.2 },   // C4
       ];
-      const durations = [
-        0.6, 0.4, 0.6, 0.4, 0.8, 0.4, 0.6, 0.4,
-        0.6, 0.4, 0.8, 0.4, 0.6, 0.4, 0.8, 0.4,
+
+      padNotes.forEach(({ freq, time, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
+
+        gain.gain.setValueAtTime(0, ctx.currentTime + time);
+        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + time + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + time + dur);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(ctx.currentTime + time);
+        osc.stop(ctx.currentTime + time + dur + 0.1);
+        allNodes.push(osc, gain);
+      });
+
+      // Harmony layer - perfect fifths
+      const harmonyNotes = [
+        { freq: 196.00, time: 0, dur: 1.2 },     // G3
+        { freq: 220.00, time: 0.8, dur: 1.0 },    // A3
+        { freq: 261.63, time: 1.6, dur: 1.2 },    // C4
+        { freq: 220.00, time: 2.4, dur: 1.0 },    // A3
+        { freq: 196.00, time: 3.2, dur: 1.4 },    // G3
       ];
 
-      let time = ctx.currentTime;
-      for (let repeat = 0; repeat < 50; repeat++) {
-        notes.forEach((freq, i) => {
-          osc1.frequency.setValueAtTime(freq, time);
-          osc2.frequency.setValueAtTime(freq * 1.5, time);
-          time += durations[i];
-        });
-      }
+      harmonyNotes.forEach(({ freq, time, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
 
-      osc1.start();
-      osc2.start();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
 
-      audioState.current = { ctx, osc1, osc2 };
+        gain.gain.setValueAtTime(0, ctx.currentTime + time);
+        gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + time + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + time + dur);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(ctx.currentTime + time);
+        osc.stop(ctx.currentTime + time + dur + 0.1);
+        allNodes.push(osc, gain);
+      });
+
+      // High sparkle notes
+      const sparkleNotes = [
+        { freq: 1046.50, time: 0.3, dur: 0.3 },   // C6
+        { freq: 1174.66, time: 1.0, dur: 0.25 },   // D6
+        { freq: 1318.51, time: 1.8, dur: 0.3 },    // E6
+        { freq: 1174.66, time: 2.8, dur: 0.25 },   // D6
+        { freq: 1046.50, time: 3.6, dur: 0.4 },    // C6
+      ];
+
+      sparkleNotes.forEach(({ freq, time, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
+
+        gain.gain.setValueAtTime(0, ctx.currentTime + time);
+        gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + dur);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(ctx.currentTime + time);
+        osc.stop(ctx.currentTime + time + dur + 0.05);
+        allNodes.push(osc, gain);
+      });
+
+      audioState.current = { ctx, nodes: allNodes };
       setPlaying(true);
+
+      // Auto-stop after 5 seconds
+      setTimeout(() => {
+        stopMusic();
+      }, 5000);
     } catch (err) {
       console.error("Audio error:", err);
     }
@@ -63,12 +130,10 @@ export default function MusicPlayer() {
 
   const stopMusic = () => {
     try {
-      const { ctx, osc1, osc2 } = audioState.current;
-      if (osc1) osc1.stop();
-      if (osc2) osc2.stop();
+      const { ctx } = audioState.current;
       if (ctx) ctx.close();
     } catch {}
-    audioState.current = { ctx: null, osc1: null, osc2: null };
+    audioState.current = { ctx: null, nodes: [] };
     setPlaying(false);
   };
 
@@ -80,17 +145,13 @@ export default function MusicPlayer() {
     }
   };
 
-  // Auto-play on first load, stop after 5 seconds
+  // Auto-play on first load
   useEffect(() => {
     if (hasAutoPlayed.current) return;
     hasAutoPlayed.current = true;
 
     const timer = setTimeout(() => {
       startMusic();
-      // Stop after 5 seconds
-      setTimeout(() => {
-        stopMusic();
-      }, 5000);
     }, 1000);
 
     return () => clearTimeout(timer);
