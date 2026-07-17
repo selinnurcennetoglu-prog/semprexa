@@ -52,7 +52,26 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "E-posta ve sifre gerekli." });
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error && error.message.includes("Email not confirmed")) {
+        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+        const authUser = authUsers?.users?.find((u: { email?: string }) => u.email === email);
+        if (authUser) {
+          await supabaseAdmin.auth.admin.updateUserById(authUser.id, { email_confirm: true });
+          const retry = await supabase.auth.signInWithPassword({ email, password });
+          if (retry.data && !retry.error) {
+            data = retry.data;
+            error = null;
+          }
+        }
+      }
+
       if (error) {
         const msg = error.message.includes("Invalid login")
           ? "E-posta veya sifre hatali."
@@ -104,12 +123,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Sifre buyuk harf, kucuk harf ve rakam icermeli." });
       }
 
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
       const { data: existing } = await supabase.from("users").select("uid").eq("email", email).limit(1);
       if (existing && existing.length > 0) {
         return NextResponse.json({ error: "Bu e-posta zaten kayitli." });
       }
 
-      const { data, error: authError } = await supabase.auth.signUp({ email, password });
+      const { data, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
       if (authError) {
         return NextResponse.json({ error: authError.message });
       }
@@ -117,22 +145,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Kayit basarisiz." });
       }
 
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-
-      await supabaseAdmin.auth.admin.updateUserById(data.user.id, { email_confirm: true });
-
       const profile = {
         uid: data.user.id, name, email, phone, gender, theme, role: "user",
         created_at: new Date().toISOString(), phone_verified: false,
       };
       await supabase.from("users").insert(profile);
 
-      const { data: loginSession } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: loginSession, error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (loginSession && loginSession.session) {
+      if (loginSession && loginSession.session && !loginErr) {
         return NextResponse.json({
           user: profile, access_token: loginSession.session.access_token, refresh_token: loginSession.session.refresh_token,
           message: "Kayit basarili!",
