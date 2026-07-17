@@ -22,7 +22,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [admin, setAdmin] = useState<{ uid: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler" | "mesajlar">("istatistik");
+  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler" | "mesajlar" | "reklam">("istatistik");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -175,9 +175,9 @@ export default function AdminPage() {
         </div>
 
         <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
-          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar"] as const).map(t => (
+          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar", "reklam"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
-              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : "Mesajlar"}
+              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : t === "reklam" ? "Reklam" : "Mesajlar"}
             </button>
           ))}
         </div>
@@ -435,6 +435,50 @@ export default function AdminPage() {
               );
             })}
             {messages.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz mesaj yok</p>}
+          </div>
+        )}
+
+        {tab === "reklam" && (
+          <div className="fairytale-card rounded-sm p-8 max-w-xl">
+            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">✦ Reklam Yönetimi</h2>
+            <div className="space-y-4">
+              <div>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM METNİ</label>
+                <input
+                  type="text"
+                  defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_text") || "✦ Özel Kampanya ✦" : "✦ Özel Kampanya ✦"}
+                  onBlur={(e) => localStorage.setItem("semprexa_ad_text", e.target.value)}
+                  className="fairytale-input w-full px-5 py-4 rounded-sm mt-1"
+                  style={{ fontFamily: "var(--font-fuzzy)" }}
+                  placeholder="Reklam metni..."
+                />
+              </div>
+              <div>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM GÖRSELİ (URL)</label>
+                <input
+                  type="text"
+                  defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_image") || "" : ""}
+                  onBlur={(e) => { localStorage.setItem("semprexa_ad_image", e.target.value); }}
+                  className="fairytale-input w-full px-5 py-4 rounded-sm mt-1"
+                  style={{ fontFamily: "var(--font-fuzzy)" }}
+                  placeholder="https://ornek.com/reklam.jpg"
+                />
+              </div>
+              <div>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM LİNKİ</label>
+                <input
+                  type="text"
+                  defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_link") || "#" : "#"}
+                  onBlur={(e) => localStorage.setItem("semprexa_ad_link", e.target.value)}
+                  className="fairytale-input w-full px-5 py-4 rounded-sm mt-1"
+                  style={{ fontFamily: "var(--font-fuzzy)" }}
+                  placeholder="https://..."
+                />
+              </div>
+              <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.85rem" }}>
+                Değişiklikler anında siteye yansır. Reklam görseli yerine metin kullanabilirsiniz.
+              </p>
+            </div>
           </div>
         )}
       </div>
