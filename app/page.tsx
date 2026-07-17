@@ -66,11 +66,8 @@ export default function HomePage() {
 
   useEffect(() => {
     getProducts().then((p) => { setProducts(p.slice(0, 6)); setLoading(false); }).catch(() => setLoading(false));
-    const hasTheme = localStorage.getItem("semprexa_theme");
-    if (!hasTheme) {
-      const timer = setTimeout(() => setShowWelcome(true), 800);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => setShowWelcome(true), 800);
+    return () => clearTimeout(timer);
   }, []);
 
   const closeWelcome = () => {

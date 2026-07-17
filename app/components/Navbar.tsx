@@ -63,6 +63,9 @@ export default function Navbar() {
           </Link>
           {user ? (
             <>
+              <Link href="/dashboard" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-text)" }}>
+                Hesabım
+              </Link>
               <Link href="/sepet" className="relative text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-text)" }}>
                 Sepet
                 {cartCount > 0 && (
@@ -103,6 +106,7 @@ export default function Navbar() {
           <Link href="/urunler" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Ürünler</Link>
           {user ? (
             <>
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Hesabım</Link>
               <Link href="/sepet" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Sepet {cartCount > 0 && `(${cartCount})`}</Link>
               {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-accent)" }}>Admin Panel</Link>}
               <button onClick={handleLogout} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-primary)" }}>Çıkış Yap</button>
