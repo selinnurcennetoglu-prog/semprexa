@@ -185,6 +185,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ user: profile });
     }
 
+    if (action === "userCount") {
+      const { count, error } = await supabase.from("users").select("uid", { count: "exact", head: true });
+      if (error) return NextResponse.json({ count: 0 });
+      return NextResponse.json({ count: count || 0 });
+    }
+
     return NextResponse.json({ error: "Bilinmeyen action" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Sunucu hatasi";
