@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface ThemeSelectorProps {
   onSelect: (theme: string) => void;
-  onSkip: () => void;
+  onSkip?: () => void;
 }
 
 const themes = [
@@ -67,7 +67,7 @@ export default function ThemeSelector({ onSelect, onSkip }: ThemeSelectorProps) 
   };
 
   const handleSkip = () => {
-    onSkip();
+    onSelect("karanlik");
     setVisible(false);
   };
 

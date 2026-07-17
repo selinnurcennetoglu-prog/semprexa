@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getProducts, type Product } from "./lib/db";
 import { LilyLarge, LilyMedium, LilySmall, PetalFloat, Butterfly, IvyVine, NeonTree, RoseFlower, DaisyFlower, Rosebud, LeafCluster } from "./components/Decorations";
+import WelcomeLetter from "./components/WelcomeLetter";
 import MusicPlayer from "./components/MusicPlayer";
 import SocialCircle from "./components/SocialCircle";
 import ThemeSelector from "./components/ThemeSelector";
@@ -60,16 +61,22 @@ export default function HomePage() {
   const { bg } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   useEffect(() => {
     getProducts().then((p) => { setProducts(p.slice(0, 6)); setLoading(false); }).catch(() => setLoading(false));
     const hasTheme = localStorage.getItem("semprexa_theme");
     if (!hasTheme) {
-      const timer = setTimeout(() => setShowThemeSelector(true), 800);
+      const timer = setTimeout(() => setShowWelcome(true), 800);
       return () => clearTimeout(timer);
     }
   }, []);
+
+  const closeWelcome = () => {
+    setShowWelcome(false);
+    setShowThemeSelector(true);
+  };
 
   const handleThemeSelect = (theme: string) => {
     localStorage.setItem("semprexa_theme", theme);
@@ -92,11 +99,14 @@ export default function HomePage() {
       <Butterflies />
       <ThemeDecorations />
 
+      {/* ── WELCOME LETTER ── */}
+      {showWelcome && <WelcomeLetter onClose={closeWelcome} />}
+
       {/* ── THEME SELECTOR ── */}
       {showThemeSelector && <ThemeSelector onSelect={handleThemeSelect} onSkip={handleThemeSkip} />}
 
       {/* ── MUSIC PLAYER ── */}
-      <MusicPlayer />
+      <MusicPlayer triggerPlay={showWelcome} />
 
       {/* ── SOCIAL CIRCLE ── */}
       <SocialCircle />
