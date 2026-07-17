@@ -11,7 +11,7 @@ interface MusicPlayerProps {
   triggerPlay?: boolean;
 }
 
-export default function MusicPlayer({ triggerPlay }: MusicPlayerProps) {
+export default function MusicPlayer({ triggerPlay: _triggerPlay }: MusicPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const audioState = useRef<AudioState>({ ctx: null, nodes: [] });
   const hasAutoPlayed = useRef(false);
@@ -148,15 +148,6 @@ export default function MusicPlayer({ triggerPlay }: MusicPlayerProps) {
       startMusic();
     }
   };
-
-  // Auto-play when triggerPlay becomes true (e.g. when welcome letter opens)
-  useEffect(() => {
-    if (triggerPlay && !hasAutoPlayed.current) {
-      hasAutoPlayed.current = true;
-      startMusic();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [triggerPlay]);
 
   return (
     <div
