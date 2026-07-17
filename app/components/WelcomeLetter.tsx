@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface WelcomeLetterProps {
   onClose: () => void;
@@ -9,6 +9,14 @@ interface WelcomeLetterProps {
 export default function WelcomeLetter({ onClose }: WelcomeLetterProps) {
   const [phase, setPhase] = useState<"envelope" | "opening" | "letter">("envelope");
   const [visible, setVisible] = useState(true);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartY = useRef(0);
+
+  const handleClose = useCallback(() => {
+    setVisible(false);
+    setTimeout(onClose, 500);
+  }, [onClose]);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("opening"), 1200);
@@ -16,10 +24,39 @@ export default function WelcomeLetter({ onClose }: WelcomeLetterProps) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const handleClose = useCallback(() => {
-    setVisible(false);
-    setTimeout(onClose, 500);
-  }, [onClose]);
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setDragging(true);
+    dragStartY.current = "touches" in e ? e.touches[0].clientY : e.clientY;
+  };
+
+  const handleDragEnd = useCallback(() => {
+    if (dragY > 100) {
+      handleClose();
+    } else {
+      setDragY(0);
+    }
+    setDragging(false);
+  }, [dragY, handleClose]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      const delta = dragStartY.current - clientY;
+      if (delta > 0) setDragY(delta);
+    };
+    const onUp = () => handleDragEnd();
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, [dragging, handleDragEnd]);
 
   if (!visible) return null;
 
@@ -141,23 +178,39 @@ export default function WelcomeLetter({ onClose }: WelcomeLetterProps) {
               boxShadow: "0 20px 60px #000000b0, 0 0 80px #d4af3715",
               animation: "rlLetterRise 0.7s ease-out",
               maxWidth: "420px",
+              transform: `translateY(${-dragY}px)`,
+              opacity: dragY > 60 ? 1 - (dragY - 60) / 60 : 1,
+              transition: dragging ? "none" : "transform 0.3s ease, opacity 0.3s ease",
             }}
           >
-            {/* KAPAT BUTONU */}
+            {/* KAPAT BUTONU - SURUKLENEBILIR */}
             <button
-              onClick={handleClose}
-              className="absolute top-2 right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              onMouseDown={handleDragStart}
+              onTouchStart={handleDragStart}
+              className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex flex-col items-center justify-center transition-all hover:scale-110"
               style={{
-                background: "#8b000080",
+                background: dragging ? "#c0392b90" : "#8b000080",
                 border: "1px solid #d4af3750",
                 color: "#d4af37",
                 fontSize: "0.9rem",
                 lineHeight: 1,
-                cursor: "pointer",
+                cursor: "grab",
+                userSelect: "none",
+                touchAction: "none",
               }}
+              onClick={(e) => { e.stopPropagation(); handleClose(); }}
             >
-              ✕
+              <span style={{ fontSize: "0.6rem", marginBottom: "-1px" }}>&#9650;</span>
+              <span style={{ fontSize: "0.7rem" }}>✕</span>
             </button>
+
+            {/* Surukleme ipucu */}
+            {phase === "letter" && !dragging && dragY === 0 && (
+              <div className="absolute top-2 right-12 z-20 animate-bounce" style={{ animationDuration: "2s" }}>
+                <span style={{ fontFamily: "var(--font-cormorant)", color: "#d4af3760", fontSize: "0.7rem" }}>yukari surukle</span>
+              </div>
+            )}
+
             {/* Ust altin cerceve */}
             <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, #8b0000, #c0392b, #d4af37, #ffd700, #d4af37, #c0392b, #8b0000)", backgroundSize: "200% 100%", animation: "rlGoldShimmer 4s linear infinite" }} />
 
