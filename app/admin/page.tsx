@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, logoutUser } from "../lib/auth";
-import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, addReview, getMessages, replyMessage, resolveMessage, type Product, type Message } from "../lib/db";
+import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, addReview, getMessages, replyMessage, resolveMessage, searchCustomers, type Product, type Message } from "../lib/db";
 import { getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
@@ -22,11 +22,14 @@ export default function AdminPage() {
   const router = useRouter();
   const [admin, setAdmin] = useState<{ uid: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler" | "mesajlar" | "reklam">("istatistik");
+  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler" | "mesajlar" | "reklam" | "musteriler">("istatistik");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerResults, setCustomerResults] = useState<Record<string, unknown>[]>([]);
+  const [customerSearching, setCustomerSearching] = useState(false);
   const [replyModal, setReplyModal] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [reviewModal, setReviewModal] = useState<string | null>(null);
@@ -61,6 +64,16 @@ export default function AdminPage() {
     } catch {}
   };
   const loadMessages = async () => { const m = await getMessages(); setMessages(m); };
+
+  const handleCustomerSearch = async () => {
+    if (customerSearch.length < 2) return;
+    setCustomerSearching(true);
+    try {
+      const results = await searchCustomers(customerSearch);
+      setCustomerResults(results);
+    } catch {}
+    setCustomerSearching(false);
+  };
 
   useEffect(() => {
     if (tab === "kullanicilar") loadUsers();
@@ -175,9 +188,9 @@ export default function AdminPage() {
         </div>
 
         <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
-          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar", "reklam"] as const).map(t => (
+          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar", "reklam", "musteriler"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
-              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : t === "reklam" ? "Reklam" : "Mesajlar"}
+              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : t === "reklam" ? "Reklam" : t === "musteriler" ? "Müşteriler" : "Mesajlar"}
             </button>
           ))}
         </div>
@@ -493,6 +506,87 @@ export default function AdminPage() {
                 Değişiklikler anında siteye yansır. Reklam görseli yerine metin kullanabilirsiniz.
               </p>
             </div>
+          </div>
+        )}
+
+        {tab === "musteriler" && (
+          <div>
+            <div className="fairytale-card rounded-sm p-6 mb-6">
+              <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.2rem" }} className="mb-4 neon-text-pink">✦ Müşteri Ara</h2>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="İsim, e-posta veya telefon ile ara..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCustomerSearch()}
+                  className="flex-1 px-4 py-3 rounded-sm outline-none"
+                  style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}
+                />
+                <button onClick={handleCustomerSearch} disabled={customerSearching || customerSearch.length < 2} className="px-6 py-3 rounded-sm" style={{
+                  background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em",
+                  cursor: customerSearching ? "wait" : "pointer", opacity: customerSearch.length < 2 ? 0.5 : 1,
+                }}>
+                  {customerSearching ? "⏳" : "🔍 ARA"}
+                </button>
+              </div>
+            </div>
+
+            {customerResults.length > 0 && (
+              <div className="space-y-4">
+                {customerResults.map((c: Record<string, unknown>) => {
+                  const orders = (c.orders || []) as Array<{ id: string; order_code: string; items: string; total: number; status: string; cargo_tracking: string; payment_method: string; created_at: string }>;
+                  return (
+                    <div key={c.uid as string} className="fairytale-card rounded-sm p-6">
+                      <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+                        <div>
+                          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "1.1rem" }}>{(c.name as string) || "İsimsiz"}</p>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF", fontSize: "0.85rem" }}>{c.email as string}</p>
+                          {c.phone && <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }}>📱 {c.phone as string}</p>}
+                          {c.gender && <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{c.gender === "erkek" ? "Erkek" : "Kadın"} · {c.role as string === "admin" ? "👑 Admin" : "👤 Kullanıcı"}</p>}
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF40", fontSize: "0.75rem", marginTop: "4px" }}>Kayıt: {new Date(c.created_at as string).toLocaleDateString("tr-TR")}</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "10px", background: "#FF5CA820", color: "#FF5CA8" }}>
+                          {orders.length} sipariş · ₺{orders.reduce((s: number, o: Record<string, unknown>) => s + (o.total as number || 0), 0).toLocaleString("tr-TR")}
+                        </span>
+                      </div>
+
+                      {orders.length > 0 && (
+                        <div className="space-y-2">
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "8px }}>SİPARİŞ GEÇMİŞİ</p>
+                          {orders.map(o => {
+                            let items: Array<{ name: string; quantity: number; price: number }> = [];
+                            try { items = JSON.parse(o.items); } catch {}
+                            return (
+                              <div key={o.id} className="p-3 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF15" }}>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "0.85rem" }}>{o.order_code}</span>
+                                    <span className="px-1.5 py-0.5 rounded-sm text-[8px]" style={{ fontFamily: "var(--font-cinzel)", background: o.status === "delivered" ? "#52b78820" : o.status === "cancelled" ? "#e6394620" : "#FFB86B20", color: o.status === "delivered" ? "#52b788" : o.status === "cancelled" ? "#e63946" : "#FFB86B" }}>{o.status}</span>
+                                  </div>
+                                  <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>
+                                    {items.map(i => i.name).join(", ")}
+                                  </p>
+                                  {o.cargo_tracking && <p style={{ fontFamily: "var(--font-cormorant)", color: "#00F0FF", fontSize: "0.75rem" }}>📦 {o.cargo_tracking}</p>}
+                                </div>
+                                <div className="text-right">
+                                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "0.95rem" }}>₺{o.total.toLocaleString("tr-TR")}</p>
+                                  <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF40", fontSize: "0.7rem" }}>{new Date(o.created_at).toLocaleDateString("tr-TR")}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {customerSearch.length >= 2 && customerResults.length === 0 && !customerSearching && (
+              <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Sonuç bulunamadı</p>
+            )}
           </div>
         )}
       </div>

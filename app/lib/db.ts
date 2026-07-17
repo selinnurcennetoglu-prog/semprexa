@@ -125,3 +125,38 @@ export async function resolveMessage(messageId: string): Promise<void> {
   const json = await dbPost({ action: "resolveMessage", messageId }, true);
   if (json.error) throw new Error(json.error);
 }
+
+export interface Address {
+  id: string;
+  user_uid: string;
+  title: string;
+  full_name: string;
+  phone: string;
+  city: string;
+  district: string;
+  neighborhood: string;
+  full_address: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export async function getAddresses(): Promise<Address[]> {
+  const json = await dbPost({ action: "getAddresses" }, true);
+  return json.data || [];
+}
+
+export async function saveAddress(data: Omit<Address, "id" | "user_uid" | "created_at">): Promise<string> {
+  const json = await dbPost({ action: "saveAddress", ...data }, true);
+  if (json.error) throw new Error(json.error);
+  return json.id;
+}
+
+export async function deleteAddress(addressId: string): Promise<void> {
+  const json = await dbPost({ action: "deleteAddress", addressId }, true);
+  if (json.error) throw new Error(json.error);
+}
+
+export async function searchCustomers(q: string): Promise<Record<string, unknown>[]> {
+  const json = await dbPost({ action: "searchCustomers", q }, true);
+  return json.data || [];
+}

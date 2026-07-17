@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, getAccessToken } from "../lib/auth";
+import { getAddresses, saveAddress, type Address } from "../lib/db";
 import { LilySmall } from "../components/Decorations";
 import { useTheme } from "../lib/useTheme";
 import BankInfoModal from "../components/BankInfoModal";
@@ -44,6 +45,10 @@ export default function OdemePage() {
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "havale">("card");
   const [showBankInfo, setShowBankInfo] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [saveAddressChecked, setSaveAddressChecked] = useState(false);
+  const [addressTitle, setAddressTitle] = useState("Ev");
 
   const [address, setAddress] = useState({
     fullName: "", phone: "", city: "", district: "", neighborhood: "", fullAddress: "",
@@ -59,6 +64,14 @@ export default function OdemePage() {
     const unsub = onAuthChange((u) => {
       if (!u) { router.push("/giris"); return; }
       setLoggedIn(true);
+      getAddresses().then(addrs => {
+        setSavedAddresses(addrs);
+        const def = addrs.find(a => a.is_default);
+        if (def) {
+          setSelectedAddressId(def.id);
+          setAddress({ fullName: def.full_name, phone: def.phone, city: def.city, district: def.district, neighborhood: def.neighborhood, fullAddress: def.full_address });
+        }
+      }).catch(() => {});
     });
     const stored = localStorage.getItem("semprexa_cart");
     if (stored) { try { setCart(JSON.parse(stored)); } catch { setCart([]); } }
@@ -111,6 +124,16 @@ export default function OdemePage() {
       }
 
       localStorage.removeItem("semprexa_cart");
+
+      if (saveAddressChecked && !selectedAddressId) {
+        try {
+          await saveAddress({
+            title: addressTitle, full_name: address.fullName, phone: address.phone,
+            city: address.city, district: address.district, neighborhood: address.neighborhood,
+            full_address: address.fullAddress, is_default: savedAddresses.length === 0,
+          });
+        } catch {}
+      }
 
       if (paymentMethod === "havale") {
         router.push("/odeme/havale?oid=" + encodeURIComponent(orderData.orderCode) + "&total=" + total);
@@ -197,17 +220,65 @@ export default function OdemePage() {
             {/* ADRES */}
             <div className="p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF20" }}>
               <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.1rem" }} className="mb-4 neon-text-cyan">✦ Teslimat Adresi</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input placeholder="Ad Soyad" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <input placeholder="Telefon (+90 5XX XXX XX XX)" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <select value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: address.city ? "#E9CFE8" : "#BC6CFF80", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}>
-                  <option value="">İl Seçin</option>
-                  {turkishCities.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <input placeholder="İlçe" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <input placeholder="Mahalle / Köy" value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <input placeholder="Açık Adres (Cadde, Sokak, Bina No)" value={address.fullAddress} onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })} className="px-4 py-3 rounded-sm outline-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <textarea placeholder="Sipariş Notu (opsiyonel)" value={orderNote} onChange={(e) => setOrderNote(e.target.value)} rows={3} maxLength={500} className="px-4 py-3 rounded-sm outline-none resize-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+
+              {savedAddresses.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "8px" }}>KAYITLI ADRESLER</p>
+                  {savedAddresses.map(a => (
+                    <button key={a.id} onClick={() => {
+                      setSelectedAddressId(a.id);
+                      setAddress({ fullName: a.full_name, phone: a.phone, city: a.city, district: a.district, neighborhood: a.neighborhood, fullAddress: a.full_address });
+                    }} className="w-full p-3 rounded-sm text-left transition-all" style={{
+                      background: selectedAddressId === a.id ? "#00F0FF10" : "#0d1130",
+                      border: selectedAddressId === a.id ? "1px solid #00F0FF40" : "1px solid #BC6CFF20",
+                      cursor: "pointer",
+                    }}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span style={{ fontFamily: "var(--font-fuzzy)", color: selectedAddressId === a.id ? "#00F0FF" : "#E9CFE8", fontSize: "0.9rem" }}>{a.title}</span>
+                          {a.is_default && <span className="ml-2 px-2 py-0.5 rounded-sm text-[8px]" style={{ background: "#52b78820", color: "#52b788", fontFamily: "var(--font-cinzel)" }}>Varsayılan</span>}
+                        </div>
+                        {selectedAddressId === a.id && <span style={{ color: "#00F0FF" }}>✓</span>}
+                      </div>
+                      <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.8rem", marginTop: "2px" }}>{a.full_name} · {a.phone}</p>
+                      <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{a.city}/{a.district} - {a.full_address}</p>
+                    </button>
+                  ))}
+                  <div className="flex items-center gap-2 mt-2">
+                    <button onClick={() => { setSelectedAddressId(null); setAddress({ fullName: "", phone: "", city: "", district: "", neighborhood: "", fullAddress: "" }); }} className="px-3 py-1.5 rounded-sm" style={{ border: "1px solid #BC6CFF30", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.05em", cursor: "pointer" }}>
+                      + Yeni Adres Gir
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {(!selectedAddressId || savedAddresses.length === 0) && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input placeholder="Ad Soyad" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                    <input placeholder="Telefon (+90 5XX XXX XX XX)" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                    <select value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: address.city ? "#E9CFE8" : "#BC6CFF80", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}>
+                      <option value="">İl Seçin</option>
+                      {turkishCities.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <input placeholder="İlçe" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                    <input placeholder="Mahalle / Köy" value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                    <input placeholder="Açık Adres (Cadde, Sokak, Bina No)" value={address.fullAddress} onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })} className="px-4 py-3 rounded-sm outline-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                  </div>
+                  <div className="flex items-center gap-3 mt-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={saveAddressChecked} onChange={(e) => setSaveAddressChecked(e.target.checked)} className="w-4 h-4 accent-[#00F0FF]" />
+                      <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF", fontSize: "0.85rem" }}>Bu adresi kaydet</span>
+                    </label>
+                    {saveAddressChecked && (
+                      <input placeholder="Adres başlığı (Ev, İş...)" value={addressTitle} onChange={(e) => setAddressTitle(e.target.value)} className="px-3 py-1.5 rounded-sm outline-none w-40" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.85rem" }} />
+                    )}
+                  </div>
+                </>
+              )}
+
+              <div className="mt-4">
+                <textarea placeholder="Sipariş Notu (opsiyonel)" value={orderNote} onChange={(e) => setOrderNote(e.target.value)} rows={3} maxLength={500} className="px-4 py-3 rounded-sm outline-none resize-none w-full" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
               </div>
             </div>
 

@@ -242,6 +242,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    if (action === "getAddresses") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris gerekli" }, { status: 401 });
+      const { data, error } = await supabaseAdmin.from("addresses").select("*").eq("user_uid", auth.user.id).order("is_default", { ascending: false }).order("created_at", { ascending: false });
+      if (error) return NextResponse.json({ data: [] });
+      return NextResponse.json({ data: data || [] });
+    }
+
+    if (action === "saveAddress") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris gerekli" }, { status: 401 });
+      const { title, full_name, phone, city, district, neighborhood, full_address, is_default } = body;
+      if (is_default) {
+        await supabaseAdmin.from("addresses").update({ is_default: false }).eq("user_uid", auth.user.id);
+      }
+      const { data, error } = await supabaseAdmin.from("addresses").insert({
+        user_uid: auth.user.id, title: title || "Ev", full_name, phone, city, district, neighborhood, full_address, is_default: is_default || false,
+      }).select("id").single();
+      if (error) return NextResponse.json({ error: error.message });
+      return NextResponse.json({ id: data.id });
+    }
+
+    if (action === "deleteAddress") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris gerekli" }, { status: 401 });
+      const { addressId } = body;
+      const { error } = await supabaseAdmin.from("addresses").delete().eq("id", addressId).eq("user_uid", auth.user.id);
+      if (error) return NextResponse.json({ error: error.message });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "searchCustomers") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris gerekli" }, { status: 401 });
+      const { data: adminCheck } = await supabaseAdmin.from("users").select("role").eq("uid", auth.user.id).single();
+      if (!adminCheck || adminCheck.role !== "admin") return NextResponse.json({ error: "Yetkiniz yok" }, { status: 403 });
+      const { q } = body;
+      if (!q || q.length < 2) return NextResponse.json({ data: [] });
+      const { data: users, error: userErr } = await supabaseAdmin.from("users").select("*").or(`name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`).limit(20);
+      if (userErr || !users) return NextResponse.json({ data: [] });
+      const customerData = await Promise.all(users.map(async (u: Record<string, unknown>) => {
+        const { data: orders } = await supabaseAdmin.from("orders").select("id, order_code, items, total, status, cargo_company, cargo_tracking, payment_method, created_at").eq("user_uid", u.uid).order("created_at", { ascending: false });
+        return { ...u, orders: orders || [] };
+      }));
+      return NextResponse.json({ data: customerData });
+    }
+
     return NextResponse.json({ error: "Bilinmeyen action" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Sunucu hatasi";
