@@ -45,8 +45,8 @@ export default function Footer() {
 
         <p style={{ fontFamily: "var(--font-cormorant)", color: "var(--theme-secondary)", fontSize: "0.9rem" }}>
           Contact:{" "}
-          <a href="mailto:info@semprexa.com" style={{ color: "var(--theme-accent)", textDecoration: "underline" }}>
-            info@semprexa.com
+          <a href="mailto:semprexaa@gmail.com" style={{ color: "var(--theme-accent)", textDecoration: "underline" }}>
+            semprexaa@gmail.com
           </a>
         </p>
 
