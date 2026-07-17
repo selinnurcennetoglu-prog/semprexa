@@ -52,7 +52,7 @@ export default function Navbar() {
       backdropFilter: "blur(12px)",
     }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/magaza" className="flex items-center gap-3">
           <img src="/logo.svg" alt="Semprexa" className="h-10 w-auto" />
           <span style={{ fontFamily: "var(--font-fuzzy)", color: "var(--theme-primary)", fontSize: "1.3rem", letterSpacing: "0.05em" }}>Semprexa</span>
         </Link>
