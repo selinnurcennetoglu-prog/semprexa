@@ -9,6 +9,7 @@ import MusicPlayer from "./components/MusicPlayer";
 import SocialCircle from "./components/SocialCircle";
 import ThemeSelector from "./components/ThemeSelector";
 import ThemeDecorations from "./components/ThemeDecorations";
+import { useTheme } from "./lib/useTheme";
 
 function FallingPetals() {
   const petals = Array.from({ length: 25 }, (_, i) => ({
@@ -57,6 +58,7 @@ function Butterflies() {
 }
 
 export default function HomePage() {
+  const { bg } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -92,21 +94,7 @@ export default function HomePage() {
       minHeight: "100vh",
       position: "relative",
       overflow: "hidden",
-      background: `
-        radial-gradient(ellipse 600px 600px at 5% 15%, #FF5CA830 0%, transparent 70%),
-        radial-gradient(ellipse 500px 500px at 92% 25%, #00F0FF25 0%, transparent 70%),
-        radial-gradient(ellipse 700px 400px at 50% 8%, #BC6CFF20 0%, transparent 70%),
-        radial-gradient(ellipse 400px 600px at 15% 60%, #FFB86B20 0%, transparent 70%),
-        radial-gradient(ellipse 500px 500px at 85% 70%, #FF5CA818 0%, transparent 70%),
-        radial-gradient(ellipse 600px 300px at 40% 90%, #00F0FF15 0%, transparent 70%),
-        radial-gradient(ellipse 350px 350px at 70% 45%, #BC6CFF20 0%, transparent 70%),
-        radial-gradient(ellipse 450px 450px at 25% 35%, #FFB86B18 0%, transparent 70%),
-        radial-gradient(ellipse 300px 500px at 60% 55%, #FF5CA812 0%, transparent 70%),
-        radial-gradient(ellipse 500px 350px at 10% 85%, #00F0FF18 0%, transparent 70%),
-        radial-gradient(ellipse 400px 400px at 78% 10%, #BC6CFF15 0%, transparent 70%),
-        radial-gradient(ellipse 350px 350px at 35% 75%, #FF5CA815 0%, transparent 70%),
-        linear-gradient(180deg, #0B0F2B 0%, #0d1130 30%, #0B0F2B 60%, #080c20 100%)
-      `
+      background: bg,
     }}>
       <FallingPetals />
       <Sparkles />

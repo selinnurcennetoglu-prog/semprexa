@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthChange } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
+import { useTheme } from "../lib/useTheme";
 
 interface CartItem {
   productId: string;
@@ -14,16 +15,9 @@ interface CartItem {
   quantity: number;
 }
 
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 8% 15%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 92% 25%, #00F0FF18 0%, transparent 70%),
-  radial-gradient(ellipse 600px 350px at 50% 5%, #BC6CFF15 0%, transparent 70%),
-  radial-gradient(ellipse 350px 500px at 20% 85%, #FFB86B12 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
-
 export default function SepetPage() {
   const router = useRouter();
+  const { bg } = useTheme();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [user, setUser] = useState<boolean>(false);
 
@@ -64,7 +58,7 @@ export default function SepetPage() {
   };
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.5em", textTransform: "uppercase", color: "#00F0FF" }} className="block mb-3 neon-text-cyan">✦ Alışveriş ✦</span>

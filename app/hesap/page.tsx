@@ -5,12 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, updateUserSettings, logoutUser, type UserProfile } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
-
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 10% 15%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 85% 25%, #00F0FF18 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
+import { useTheme } from "../lib/useTheme";
 
 const themes: { value: string; label: string; desc: string; emoji: string; colors: string[] }[] = [
   { value: "karanlik", label: "Karanlık", desc: "Skull & Chain", emoji: "💀", colors: ["#0a0a0a", "#c0c0c0", "#808080", "#e63946"] },
@@ -22,6 +17,7 @@ const themes: { value: string; label: string; desc: string; emoji: string; color
 
 export default function HesapPage() {
   const router = useRouter();
+  const { bg } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,14 +55,14 @@ export default function HesapPage() {
 
   if (loading) {
     return (
-      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="flex items-center justify-center">
+      <main style={{ background: bg, minHeight: "100vh" }} className="flex items-center justify-center">
         <div className="w-12 h-12 rounded-full animate-spin" style={{ border: "2px solid #BC6CFF30", borderTopColor: "#FF5CA8" }} />
       </main>
     );
   }
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />

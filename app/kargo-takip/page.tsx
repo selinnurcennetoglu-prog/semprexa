@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { LilySmall } from "../components/Decorations";
-
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 8% 15%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 92% 25%, #00F0FF18 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
+import { useTheme } from "../lib/useTheme";
 
 const statusSteps = [
   { key: "pending", label: "Sipariş Alındı", icon: "📋" },
@@ -27,6 +22,7 @@ interface TrackData {
 }
 
 export default function KargoTakipPage() {
+  const { bg } = useTheme();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<TrackData | null>(null);
@@ -60,7 +56,7 @@ export default function KargoTakipPage() {
   const currentStep = data ? statusSteps.findIndex(s => s.key === data.cargo_status) : -1;
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-8">
           <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-text-cyan">📦 Kargo Takip</h1>

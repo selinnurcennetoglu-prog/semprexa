@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
+import { useTheme } from "../lib/useTheme";
 
 interface CartItem {
   productId: string;
@@ -13,13 +14,6 @@ interface CartItem {
   image: string;
   quantity: number;
 }
-
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 8% 15%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 92% 25%, #00F0FF18 0%, transparent 70%),
-  radial-gradient(ellipse 600px 350px at 50% 5%, #BC6CFF15 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
 
 function formatCardNumber(v: string): string {
   const d = v.replace(/\D/g, "").slice(0, 16);
@@ -48,6 +42,7 @@ function getBankName(bin: string): string {
 
 export default function OdemePage() {
   const router = useRouter();
+  const { bg } = useTheme();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -181,7 +176,7 @@ export default function OdemePage() {
 
   if (!loggedIn || loading) {
     return (
-      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="flex items-center justify-center">
+      <main style={{ background: bg, minHeight: "100vh" }} className="flex items-center justify-center">
         <div className="w-12 h-12 rounded-full animate-spin" style={{ border: "2px solid #FF5CA830", borderTopColor: "#FF5CA8" }} />
       </main>
     );
@@ -189,7 +184,7 @@ export default function OdemePage() {
 
   if (cart.length === 0) {
     return (
-      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+      <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
         <div className="max-w-2xl mx-auto text-center py-16">
           <LilySmall className="w-16 h-16 mx-auto mb-4 opacity-40" />
           <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF", fontSize: "1.2rem" }}>Sepetiniz boş</p>
@@ -204,7 +199,7 @@ export default function OdemePage() {
   const turkishCities = ["Adana","Adıyaman","Afyonkarahisar","Ağrı","Aksaray","Amasya","Ankara","Antalya","Ardahan","Artvin","Aydın","Balıkesir","Bartın","Batman","Bayburt","Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli","Diyarbakır","Düzce","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkari","Hatay","Iğdır","Isparta","İstanbul","İzmir","Kahramanmaraş","Karabük","Karaman","Kars","Kastamonu","Kayseri","Kırıkkale","Kırklareli","Kırşehir","Kilis","Kocaeli","Konya","Kütahya","Malatya","Manisa","Mardin","Mersin","Muğla","Muş","Nevşehir","Niğde","Ordu","Osmaniye","Rize","Sakarya","Samsun","Şanlıurfa","Siirt","Sinop","Sivas","Şırnak","Tekirdağ","Tokat","Trabzon","Tunceli","Uşak","Van","Yalova","Yozgat","Zonguldak"];
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-text-pink">Ödeme</h1>

@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { getProduct, getReviews, sendMessage, type Product, type Review } from "../../lib/db";
 import { LilySmall } from "../../components/Decorations";
+import { useTheme } from "../../lib/useTheme";
 
 function addToCart(product: Product, selectedSize: string) {
   try {
@@ -32,16 +33,9 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 10% 20%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 85% 25%, #00F0FF18 0%, transparent 70%),
-  radial-gradient(ellipse 550px 350px at 50% 8%, #BC6CFF15 0%, transparent 70%),
-  radial-gradient(ellipse 350px 500px at 20% 80%, #FFB86B12 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
-
 export default function UrunDetayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { bg } = useTheme();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +71,7 @@ export default function UrunDetayPage({ params }: { params: Promise<{ id: string
 
   if (loading) {
     return (
-      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex items-center justify-center">
+      <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex items-center justify-center">
         <div className="w-12 h-12 rounded-full animate-spin" style={{ border: "2px solid #BC6CFF30", borderTopColor: "#FF5CA8" }} />
       </main>
     );
@@ -85,7 +79,7 @@ export default function UrunDetayPage({ params }: { params: Promise<{ id: string
 
   if (!product) {
     return (
-      <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex flex-col items-center justify-center">
+      <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6 flex flex-col items-center justify-center">
         <LilySmall className="w-20 h-20 opacity-40 mb-4" />
         <h1 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.5rem" }} className="neon-text-pink">Ürün bulunamadı</h1>
         <Link href="/urunler" className="mt-4" style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "11px", letterSpacing: "0.15em" }}>← Ürünler</Link>
@@ -97,7 +91,7 @@ export default function UrunDetayPage({ params }: { params: Promise<{ id: string
   const hasSizes = product.sizes && product.sizes.length > 0;
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
         <Link href="/urunler" className="inline-block mb-8" style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "10px", letterSpacing: "0.15em" }}>← Ürünlere Dön</Link>
 

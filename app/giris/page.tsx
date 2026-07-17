@@ -5,18 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginUser, onAuthChange } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
-
-const paintSplashBg = `
-  radial-gradient(ellipse 500px 500px at 8% 20%, #FF5CA825 0%, transparent 70%),
-  radial-gradient(ellipse 400px 400px at 90% 30%, #00F0FF20 0%, transparent 70%),
-  radial-gradient(ellipse 600px 350px at 50% 5%, #BC6CFF18 0%, transparent 70%),
-  radial-gradient(ellipse 350px 500px at 20% 80%, #FFB86B15 0%, transparent 70%),
-  radial-gradient(ellipse 450px 400px at 80% 75%, #FF5CA812 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%)
-`;
+import { useTheme } from "../lib/useTheme";
 
 export default function GirisPage() {
   const router = useRouter();
+  const { bg } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -52,7 +45,7 @@ export default function GirisPage() {
   };
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-12">
           <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />

@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthChange } from "../lib/auth";
+import { useTheme } from "../lib/useTheme";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; isAdmin: boolean } | null>(null);
   const [cartCount, setCartCount] = useState(0);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const unsub = onAuthChange(async (u) => {
@@ -39,59 +41,76 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: "rgba(11,15,43,0.95)", borderColor: "#BC6CFF20", backdropFilter: "blur(12px)" }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{
+      background: theme === "karanlik" ? "rgba(10,10,10,0.95)"
+        : theme === "lacivert" ? "rgba(10,22,40,0.95)"
+        : theme === "yesil" ? "rgba(10,26,18,0.95)"
+        : theme === "pembe" ? "rgba(42,21,37,0.95)"
+        : theme === "bej" ? "rgba(42,34,24,0.95)"
+        : "rgba(11,15,43,0.95)",
+      borderColor: "var(--theme-card-border)",
+      backdropFilter: "blur(12px)",
+    }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-3">
           <img src="/logo.svg" alt="Semprexa" className="h-10 w-auto" />
-          <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem", letterSpacing: "0.05em" }}>Semprexa</span>
+          <span style={{ fontFamily: "var(--font-fuzzy)", color: "var(--theme-primary)", fontSize: "1.3rem", letterSpacing: "0.05em" }}>Semprexa</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/urunler" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#E9CFE8" }}>
-            <span className="neon-text-cyan" style={{ fontSize: "inherit", letterSpacing: "inherit" }}>Ürünler</span>
+          <Link href="/urunler" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-text)" }}>
+            Ürünler
           </Link>
           {user ? (
             <>
-              <Link href="/sepet" className="relative text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#E9CFE8" }}>
-                <span className="neon-text-cyan" style={{ fontSize: "inherit", letterSpacing: "inherit" }}>Sepet</span>
+              <Link href="/sepet" className="relative text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-text)" }}>
+                Sepet
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-4 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "#FF5CA8", color: "#fff", boxShadow: "0 0 10px #FF5CA880" }}>
+                  <span className="absolute -top-2 -right-4 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "var(--theme-primary)", color: "#fff", boxShadow: "0 0 10px var(--theme-glow)" }}>
                     {cartCount}
                   </span>
                 )}
               </Link>
-              {user.isAdmin && <Link href="/admin" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)" }}><span className="neon-text-purple" style={{ fontSize: "inherit", letterSpacing: "inherit" }}>Admin</span></Link>}
-              <span className="text-xs neon-text-peach" style={{ fontFamily: "var(--font-cormorant)" }}>{user.name || user.email}</span>
-              <button onClick={handleLogout} className="px-5 py-2 border text-xs tracking-widest uppercase transition-all" style={{ fontFamily: "var(--font-cinzel)", borderColor: "#FF5CA840", color: "#FF5CA8" }}>
+              {user.isAdmin && <Link href="/admin" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-accent)" }}>Admin</Link>}
+              <span className="text-xs" style={{ fontFamily: "var(--font-cormorant)", color: "var(--theme-gold)" }}>{user.name || user.email}</span>
+              <button onClick={handleLogout} className="px-5 py-2 border text-xs tracking-widest uppercase transition-all" style={{ fontFamily: "var(--font-cinzel)", borderColor: "var(--theme-border-hover)", color: "var(--theme-primary)" }}>
                 Çıkış
               </button>
             </>
           ) : (
             <>
-              <Link href="/giris" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "#E9CFE8" }}>
-                <span className="neon-text-cyan" style={{ fontSize: "inherit", letterSpacing: "inherit" }}>Giriş</span>
+              <Link href="/giris" className="text-sm tracking-widest uppercase transition-colors" style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-text)" }}>
+                Giriş
               </Link>
-              <Link href="/kayit" className="px-5 py-2 text-xs tracking-widest uppercase font-semibold transition-all" style={{ fontFamily: "var(--font-cinzel)", background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", boxShadow: "0 2px 15px #FF5CA840" }}>Kayıt Ol</Link>
+              <Link href="/kayit" className="px-5 py-2 text-xs tracking-widest uppercase font-semibold transition-all" style={{ fontFamily: "var(--font-cinzel)", background: "var(--theme-gradient)", color: "#fff", boxShadow: "0 2px 15px var(--theme-glow)" }}>Kayıt Ol</Link>
             </>
           )}
         </div>
 
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-2xl neon-text-pink">{mobileOpen ? "✕" : "☰"}</button>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-2xl" style={{ color: "var(--theme-primary)" }}>{mobileOpen ? "✕" : "☰"}</button>
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden px-6 py-6 space-y-4 border-t" style={{ background: "rgba(11,15,43,0.98)", borderColor: "#BC6CFF20" }}>
-          <Link href="/urunler" onClick={() => setMobileOpen(false)} className="block neon-text-cyan" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Ürünler</Link>
+        <div className="md:hidden px-6 py-6 space-y-4 border-t" style={{
+          background: theme === "karanlik" ? "rgba(10,10,10,0.98)"
+            : theme === "lacivert" ? "rgba(10,22,40,0.98)"
+            : theme === "yesil" ? "rgba(10,26,18,0.98)"
+            : theme === "pembe" ? "rgba(42,21,37,0.98)"
+            : theme === "bej" ? "rgba(42,34,24,0.98)"
+            : "rgba(11,15,43,0.98)",
+          borderColor: "var(--theme-card-border)",
+        }}>
+          <Link href="/urunler" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Ürünler</Link>
           {user ? (
             <>
-              <Link href="/sepet" onClick={() => setMobileOpen(false)} className="block neon-text-cyan" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Sepet {cartCount > 0 && `(${cartCount})`}</Link>
-              {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block neon-text-purple" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Admin Panel</Link>}
-              <button onClick={handleLogout} className="block neon-text-pink" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Çıkış Yap</button>
+              <Link href="/sepet" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Sepet {cartCount > 0 && `(${cartCount})`}</Link>
+              {user.isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-accent)" }}>Admin Panel</Link>}
+              <button onClick={handleLogout} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-primary)" }}>Çıkış Yap</button>
             </>
           ) : (
             <>
-              <Link href="/giris" onClick={() => setMobileOpen(false)} className="block neon-text-cyan" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Giriş</Link>
-              <Link href="/kayit" onClick={() => setMobileOpen(false)} className="block neon-text-pink" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}>Kayıt Ol</Link>
+              <Link href="/giris" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-secondary)" }}>Giriş</Link>
+              <Link href="/kayit" onClick={() => setMobileOpen(false)} className="block" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem", color: "var(--theme-primary)" }}>Kayıt Ol</Link>
             </>
           )}
         </div>

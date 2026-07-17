@@ -283,9 +283,9 @@ html {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: #BC6CFF;
+  color: var(--theme-accent);
   font-size: 0.5rem;
-  background: #0B0F2B;
+  background: var(--theme-bg);
   padding: 0 1rem;
   z-index: 2;
 }
@@ -306,16 +306,16 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0F2B;
+  background: var(--theme-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #BC6CFF;
+  background: var(--theme-accent);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF5CA8;
+  background: var(--theme-primary);
 }
 
 @keyframes shake {
@@ -477,14 +477,14 @@ html {
 /* ═══════════ PRODUCT CARD ═══════════ */
 
 .product-card {
-  background: linear-gradient(145deg, #111535, #0d1130);
-  border: 1px solid #BC6CFF25;
+  background: linear-gradient(145deg, var(--theme-bg-card), var(--theme-bg-deep));
+  border: 1px solid var(--theme-card-border);
   transition: all 0.3s ease;
 }
 
 .product-card:hover {
-  border-color: #FF5CA860;
-  box-shadow: 0 8px 32px #FF5CA820, 0 0 60px #00F0FF10;
+  border-color: var(--theme-border-hover);
+  box-shadow: 0 8px 32px var(--theme-glow), 0 0 60px var(--theme-glow);
   transform: translateY(-4px);
 }
 
@@ -492,10 +492,10 @@ html {
 
 .admin-fairytale {
   background:
-    radial-gradient(ellipse at 20% 0%, #FF5CA815 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, #00F0FF10 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, #BC6CFF08 0%, transparent 60%),
-    linear-gradient(180deg, #0d1130 0%, #0B0F2B 50%, #080c20 100%);
+    radial-gradient(ellipse at 20% 0%, var(--theme-primary) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, var(--theme-secondary) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, var(--theme-accent) 0%, transparent 60%),
+    linear-gradient(180deg, var(--theme-bg-card) 0%, var(--theme-bg) 50%, var(--theme-bg-deep) 100%);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -533,22 +533,21 @@ html {
 }
 
 .fairytale-frame {
-  background: linear-gradient(145deg, #111535, #0B0F2B);
-  border: 1.5px solid #FF5CA840;
+  background: linear-gradient(145deg, var(--theme-bg-card), var(--theme-bg));
+  border: 1.5px solid var(--theme-primary);
   box-shadow:
-    0 0 0 1px #FF5CA810,
-    0 4px 20px #FF5CA815,
-    inset 0 1px 0 #E9CFE808,
-    0 0 40px #00F0FF08;
+    0 0 0 1px var(--theme-glow),
+    0 4px 20px var(--theme-glow),
+    inset 0 1px 0 var(--theme-glow),
+    0 0 40px var(--theme-glow);
   position: relative;
-  animation: glow-pulse 5s ease-in-out infinite;
 }
 
 .fairytale-btn {
-  background: linear-gradient(135deg, #FF5CA8, #BC6CFF);
+  background: var(--theme-gradient);
   color: #fff;
-  border: 1px solid #FF5CA860;
-  box-shadow: 0 2px 10px #FF5CA830, 0 0 20px #BC6CFF20;
+  border: 1px solid var(--theme-border-hover);
+  box-shadow: 0 2px 10px var(--theme-glow), 0 0 20px var(--theme-glow);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -564,8 +563,8 @@ html {
 }
 
 .fairytale-btn:hover {
-  background: linear-gradient(135deg, #00F0FF, #BC6CFF);
-  box-shadow: 0 4px 20px #FF5CA850, 0 0 40px #00F0FF30;
+  background: var(--theme-gradient-hover);
+  box-shadow: 0 4px 20px var(--theme-glow), 0 0 40px var(--theme-glow);
   transform: translateY(-1px);
 }
 
@@ -574,16 +573,16 @@ html {
 }
 
 .fairytale-input {
-  background: #111535;
-  border: 1px solid #BC6CFF30;
-  color: #E9CFE8;
+  background: var(--theme-bg-deep);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
   transition: all 0.3s ease;
 }
 
 .fairytale-input:focus {
   outline: none;
-  border-color: #FF5CA860;
-  box-shadow: 0 0 0 3px #FF5CA815, 0 0 20px #00F0FF10;
+  border-color: var(--theme-border-hover);
+  box-shadow: 0 0 0 3px var(--theme-glow), 0 0 20px var(--theme-glow);
 }
 
 .fairytale-tab {
@@ -598,13 +597,13 @@ html {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #FF5CA8, #00F0FF);
+  background: var(--theme-gradient);
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
 
 .fairytale-tab.active {
-  color: #FF5CA8;
+  color: var(--theme-primary);
 }
 
 .fairytale-tab.active::after {
@@ -612,15 +611,15 @@ html {
 }
 
 .fairytale-card {
-  background: linear-gradient(145deg, #111535, #0B0F2B);
-  border: 1px solid #FF5CA820;
-  box-shadow: 0 2px 12px #FF5CA810;
+  background: linear-gradient(145deg, var(--theme-bg-card), var(--theme-bg));
+  border: 1px solid var(--theme-card-border);
+  box-shadow: 0 2px 12px var(--theme-glow);
   transition: all 0.3s ease;
 }
 
 .fairytale-card:hover {
-  box-shadow: 0 4px 24px #FF5CA820, 0 0 30px #00F0FF10;
-  border-color: #FF5CA840;
+  box-shadow: 0 4px 24px var(--theme-glow), 0 0 30px var(--theme-glow);
+  border-color: var(--theme-border-hover);
   transform: translateY(-2px);
 }
 

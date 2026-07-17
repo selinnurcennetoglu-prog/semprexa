@@ -4,20 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getProducts, type Product } from "../lib/db";
 import { LilySmall } from "../components/Decorations";
+import { useTheme } from "../lib/useTheme";
 
 const categories = ["Tümü", "Giyim", "Aksesuar", "Dekorasyon", "Takı", "Çanta", "Elektronik", "Diğer"];
 
-const paintSplashBg = `
-  radial-gradient(ellipse 550px 500px at 5% 10%, #FF5CA820 0%, transparent 70%),
-  radial-gradient(ellipse 450px 450px at 95% 20%, #00F0FF18 0%, transparent 70%),
-  radial-gradient(ellipse 650px 350px at 50% 5%, #BC6CFF15 0%, transparent 70%),
-  radial-gradient(ellipse 400px 550px at 15% 85%, #FFB86B12 0%, transparent 70%),
-  radial-gradient(ellipse 500px 450px at 90% 80%, #FF5CA810 0%, transparent 70%),
-  radial-gradient(ellipse 350px 350px at 60% 50%, #00F0FF10 0%, transparent 70%),
-  linear-gradient(180deg, #0B0F2B 0%, #0d1130 40%, #0B0F2B 70%, #080c20 100%)
-`;
-
 export default function UrunlerPage() {
+  const { bg } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("Tümü");
@@ -28,7 +20,7 @@ export default function UrunlerPage() {
   }, [category, search]);
 
   return (
-    <main style={{ background: paintSplashBg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
+    <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.5em", textTransform: "uppercase", color: "#00F0FF" }} className="block mb-3 neon-text-cyan">✦ Koleksiyon ✦</span>
