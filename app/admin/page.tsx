@@ -32,7 +32,7 @@ export default function AdminPage() {
   const [reviewModal, setReviewModal] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] as string[] });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] as string[] });
 
   useEffect(() => {
     const unsub = onAuthChange(async (u) => {
@@ -75,7 +75,7 @@ export default function AdminPage() {
     try {
       await createProduct(newProduct);
       alert("Ürün eklendi!");
-      setNewProduct({ name: "", description: "", price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] });
+      setNewProduct({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] });
       setTab("urunler");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Hata";
@@ -200,7 +200,10 @@ export default function AdminPage() {
               <input type="text" placeholder="Ürün Adı" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               <textarea placeholder="Açıklama" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} rows={3} className="fairytale-input w-full px-5 py-4 rounded-sm resize-none" style={{ fontFamily: "var(--font-fuzzy)" }} />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Fiyat (₺)" value={newProduct.price || ""} onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+                <input type="number" placeholder="Perakende Fiyat (₺)" value={newProduct.price || ""} onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+                <input type="number" placeholder="Toptan Fiyat (₺)" value={newProduct.wholesale_price || ""} onChange={(e) => setNewProduct({ ...newProduct, wholesale_price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <input type="number" placeholder="Stok" value={newProduct.stock || ""} onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               </div>
               <select value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }}>
@@ -242,7 +245,7 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{p.name}</p>
-                      <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">₺{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}>· {p.category}</span></p>
+                      <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">₺{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#FFB86B" }}>· Toptan: ₺{(p.wholesale_price || 0).toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}>· {p.category}</span></p>
                     </div>
                   </div>
                   <div className="flex gap-2">

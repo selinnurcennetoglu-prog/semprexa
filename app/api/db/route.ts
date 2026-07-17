@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
         if (error || !data) return NextResponse.json({ data: null });
         return NextResponse.json({ data: {
           id: data.id, name: data.name, description: data.description, price: data.price,
+          wholesale_price: Number(data.wholesale_price || 0),
           category: data.category, image: data.image, stock: data.stock, featured: data.featured,
           sizes: Array.isArray(data.sizes) ? data.sizes : (typeof data.sizes === "string" ? JSON.parse(data.sizes || "[]") : []),
           createdAt: data.created_at,
@@ -93,6 +94,7 @@ export async function POST(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let results = (data || []).map((p: any) => ({
         id: p.id, name: String(p.name), description: String(p.description || ""), price: Number(p.price),
+        wholesale_price: Number(p.wholesale_price || 0),
         category: String(p.category), image: String(p.image || ""), stock: Number(p.stock), featured: Boolean(p.featured),
         sizes: Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === "string" ? JSON.parse(p.sizes || "[]") : []),
         createdAt: p.created_at,
@@ -112,6 +114,7 @@ export async function POST(req: NextRequest) {
     if (action === "createProduct") {
       const { data: result, error } = await supabaseAdmin.from("products").insert({
         name: body.data.name, description: body.data.description, price: body.data.price,
+        wholesale_price: body.data.wholesale_price || 0,
         category: body.data.category, image: body.data.image, stock: body.data.stock, featured: body.data.featured,
         sizes: JSON.stringify(body.data.sizes || []),
         created_at: new Date().toISOString(),
@@ -132,6 +135,7 @@ export async function POST(req: NextRequest) {
         if (body.data.name !== undefined) updatePayload.name = body.data.name;
         if (body.data.description !== undefined) updatePayload.description = body.data.description;
         if (body.data.price !== undefined) updatePayload.price = body.data.price;
+        if (body.data.wholesale_price !== undefined) updatePayload.wholesale_price = body.data.wholesale_price;
         if (body.data.category !== undefined) updatePayload.category = body.data.category;
         if (body.data.image !== undefined) updatePayload.image = body.data.image;
         if (body.data.stock !== undefined) updatePayload.stock = body.data.stock;
