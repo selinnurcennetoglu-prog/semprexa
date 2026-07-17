@@ -35,7 +35,7 @@ export default function AdminPage() {
   const [reviewModal, setReviewModal] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] as string[] });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diger", image: "", stock: 10, featured: false, sizes: [] as string[] });
 
   useEffect(() => {
     const unsub = onAuthChange(async (u) => {
@@ -48,7 +48,7 @@ export default function AdminPage() {
     return () => { unsub.then(fn => fn()); };
   }, [router]);
 
-  const loadUsers = async () => {     const u = await getUsers(); setUsers(u as unknown as UserProfile[]); };
+  const loadUsers = async () => { const u = await getUsers(); setUsers(u as unknown as UserProfile[]); };
   const loadProducts = async () => { const p = await getProducts(); setProducts(p); };
   const loadOrders = async () => {
     const token = getAccessToken();
@@ -84,20 +84,20 @@ export default function AdminPage() {
   }, [tab]);
 
   const handleAddProduct = async () => {
-    if (!newProduct.name || !newProduct.price) { alert("İsim ve fiyat gerekli."); return; }
+    if (!newProduct.name || !newProduct.price) { alert("Isim ve fiyat gerekli."); return; }
     try {
       await createProduct(newProduct);
-      alert("Ürün eklendi!");
-      setNewProduct({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diğer", image: "", stock: 10, featured: false, sizes: [] });
+      alert("Urun eklendi!");
+      setNewProduct({ name: "", description: "", price: 0, wholesale_price: 0, category: "Diger", image: "", stock: 10, featured: false, sizes: [] });
       setTab("urunler");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Hata";
-      alert("Ürün eklenemedi: " + msg);
+      alert("Urun eklenemedi: " + msg);
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+    if (!confirm("Bu urunu silmek istediginize emin misiniz?")) return;
     try {
       await deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
@@ -107,7 +107,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteUser = async (uid: string) => {
-    if (!confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) return;
+    if (!confirm("Bu kullaniciyi silmek istediginize emin misiniz?")) return;
     await deleteUser(uid);
     setUsers(prev => prev.filter(u => u.uid !== uid));
   };
@@ -150,7 +150,7 @@ export default function AdminPage() {
       setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reply: replyText.trim(), status: "replied" } : m));
       setReplyModal(null);
       setReplyText("");
-    } catch { alert("Yanıt gönderilemedi."); }
+    } catch { alert("Yanit gonderilemedi."); }
   };
 
   const handleResolve = async (messageId: string) => {
@@ -165,7 +165,7 @@ export default function AdminPage() {
       <main className="admin-fairytale flex items-center justify-center">
         <div className="relative z-10 text-center">
           <div className="w-14 h-14 rounded-full animate-spin mx-auto mb-4" style={{ border: "2px solid #FF5CA830", borderTopColor: "#FF5CA8" }} />
-          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Yükleniyor...</p>
+          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>Yukleniyor...</p>
         </div>
       </main>
     );
@@ -173,7 +173,7 @@ export default function AdminPage() {
 
   if (!admin) return null;
 
-  const stats = { toplamKullanici: users.length || "—", toplamIlan: products.length || "—" };
+  const stats = { toplamKullanici: users.length || "\u2014", toplamIlan: products.length || "\u2014" };
 
   return (
     <main className="admin-fairytale relative">
@@ -182,22 +182,22 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-12">
           <div>
             <LilySmall className="w-8 h-8 opacity-40 mb-2" />
-            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-shimmer">Yönetici Paneli</h1>
+            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-shimmer">Yonetici Paneli</h1>
           </div>
-          <button onClick={async () => { await logoutUser(); router.push("/"); }} className="px-5 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em" }}>Çıkış</button>
+          <button onClick={async () => { await logoutUser(); router.push("/"); }} className="px-5 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em" }}>Cikis</button>
         </div>
 
         <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
           {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar", "reklam", "musteriler"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
-              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : t === "reklam" ? "Reklam" : t === "musteriler" ? "Müşteriler" : "Mesajlar"}
+            <button key={t} onClick={() => setTab(t)} className="fairytale-tab px-5 py-3 text-xs tracking-widest uppercase" style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
+              {t === "istatistik" ? "Istatistikler" : t === "urunler" ? "Urunler" : t === "urun-ekle" ? "Urun Ekle" : t === "kullanicilar" ? "Kullanicilar" : t === "siparisler" ? "Siparisler" : t === "reklam" ? "Reklam" : t === "musteriler" ? "Musteriler" : "Mesajlar"}
             </button>
           ))}
         </div>
 
         {tab === "istatistik" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[{ label: "Toplam Ürün", value: stats.toplamIlan, color: "#FF5CA8" }, { label: "Toplam Kullanıcı", value: stats.toplamKullanici, color: "#00F0FF" }].map((s, i) => (
+            {[{ label: "Toplam Urun", value: stats.toplamIlan, color: "#FF5CA8" }, { label: "Toplam Kullanici", value: stats.toplamKullanici, color: "#00F0FF" }].map((s, i) => (
               <div key={i} className="fairytale-card rounded-sm p-8 text-center">
                 <p style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem", color: s.color }} className={i === 0 ? "neon-text-pink" : "neon-text-cyan"}>{s.value}</p>
                 <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>{s.label}</p>
@@ -208,23 +208,23 @@ export default function AdminPage() {
 
         {tab === "urun-ekle" && (
           <div className="fairytale-card rounded-sm p-8 max-w-xl">
-            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">✦ Yeni Ürün Ekle</h2>
+            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">Yeni Urun Ekle</h2>
             <div className="space-y-4">
-              <input type="text" placeholder="Ürün Adı" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
-              <textarea placeholder="Açıklama" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} rows={3} className="fairytale-input w-full px-5 py-4 rounded-sm resize-none" style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <input type="text" placeholder="Urun Adi" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <textarea placeholder="Aciklama" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} rows={3} className="fairytale-input w-full px-5 py-4 rounded-sm resize-none" style={{ fontFamily: "var(--font-fuzzy)" }} />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Perakende Fiyat (₺)" value={newProduct.price || ""} onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
-                <input type="number" placeholder="Toptan Fiyat (₺)" value={newProduct.wholesale_price || ""} onChange={(e) => setNewProduct({ ...newProduct, wholesale_price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+                <input type="number" placeholder="Perakende Fiyat (TL)" value={newProduct.price || ""} onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+                <input type="number" placeholder="Toptan Fiyat (TL)" value={newProduct.wholesale_price || ""} onChange={(e) => setNewProduct({ ...newProduct, wholesale_price: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <input type="number" placeholder="Stok" value={newProduct.stock || ""} onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               </div>
               <select value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }}>
-                {["Giyim", "Aksesuar", "Dekorasyon", "Takı", "Çanta", "Elektronik", "Diğer"].map(c => <option key={c} value={c}>{c}</option>)}
+                {["Giyim", "Aksesuar", "Dekorasyon", "Taki", "Canta", "Elektronik", "Diger"].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              <input type="text" placeholder="Görsel URL (opsiyonel)" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
+              <input type="text" placeholder="Gorsel URL (opsiyonel)" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} className="fairytale-input w-full px-5 py-4 rounded-sm" style={{ fontFamily: "var(--font-fuzzy)" }} />
               <div>
-                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF", fontSize: "10px", letterSpacing: "0.15em", display: "block", marginBottom: "8px" }}>BEDEN SEÇENEKLERİ</label>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF", fontSize: "10px", letterSpacing: "0.15em", display: "block", marginBottom: "8px" }}>BEDEN SECENEKLERI</label>
                 <div className="flex flex-wrap gap-2">
                   {["XS", "S", "M", "L", "XL", "XXL", "36", "37", "38", "39", "40", "41", "42", "43", "44"].map(size => (
                     <button key={size} type="button" onClick={() => {
@@ -241,7 +241,7 @@ export default function AdminPage() {
                 </div>
               </div>
               <button onClick={handleAddProduct} className="fairytale-btn w-full py-4 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
-                ✦ Ürünü Ekle
+                Urunu Ekle
               </button>
             </div>
           </div>
@@ -258,16 +258,16 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{p.name}</p>
-                      <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">₺{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#FFB86B" }}>· Toptan: ₺{(p.wholesale_price || 0).toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}>· {p.category}</span></p>
+                      <p style={{ fontFamily: "var(--font-fuzzy)" }}><span className="neon-text-pink">TL{p.price.toLocaleString("tr-TR")}</span> <span style={{ color: "#FFB86B" }}> | Toptan: TL{(p.wholesale_price || 0).toLocaleString("tr-TR")}</span> <span style={{ color: "#BC6CFF" }}> | {p.category}</span></p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setReviewModal(p.id); setReviewRating(5); setReviewComment(""); }} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FFB86B40", color: "#FFB86B", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>★ Yorum</button>
-                    <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕ Sil</button>
+                    <button onClick={() => { setReviewModal(p.id); setReviewRating(5); setReviewComment(""); }} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FFB86B40", color: "#FFB86B", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>Yorum</button>
+                    <button onClick={() => handleDeleteProduct(p.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>Sil</button>
                   </div>
                 </div>
               ))}
-              {products.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz ürün yok</p>}
+              {products.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>Henuz urun yok</p>}
             </div>
           </div>
         )}
@@ -280,14 +280,14 @@ export default function AdminPage() {
                   <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{u.name}</p>
                   <p style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>{u.email}</p>
                   <span className="inline-block mt-1 px-2 py-0.5 text-[9px] rounded-sm" style={{ fontFamily: "var(--font-cinzel)", background: u.role === "admin" ? "#FF5CA820" : "#00F0FF15", color: u.role === "admin" ? "#FF5CA8" : "#00F0FF" }}>
-                    {u.role === "admin" ? "👑 Admin" : "🌿 Kullanıcı"}
+                    {u.role === "admin" ? "Admin" : "Kullanici"}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => handleToggleRole(u.uid, u.role)} className="fairytale-btn px-4 py-2 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>
                     {u.role === "admin" ? "User Yap" : "Admin Yap"}
                   </button>
-                  <button onClick={() => handleDeleteUser(u.uid)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>✕</button>
+                  <button onClick={() => handleDeleteUser(u.uid)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #FF5CA840", color: "#FF5CA8", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em" }}>Sil</button>
                 </div>
               </div>
             ))}
@@ -297,7 +297,7 @@ export default function AdminPage() {
         {tab === "siparisler" && (
           <div className="space-y-4">
             {orders.map(o => {
-              const cargoCompanies = ["MNG Kargo", "PTT Kargo", "Aras Kargo", "Yurtiçi Kargo", "Sürat Kargo", "HepsiJET"];
+              const cargoCompanies = ["MNG Kargo", "PTT Kargo", "Aras Kargo", "Yurtici Kargo", "Surat Kargo", "HepsiJET"];
               const cargoStatuses = [
                 { value: "pending", label: "Beklemede", color: "#FFB86B" },
                 { value: "shipped", label: "Kargoya Verildi", color: "#00F0FF" },
@@ -306,8 +306,8 @@ export default function AdminPage() {
               ];
               const orderStatuses = [
                 { value: "pending", label: "Beklemede" },
-                { value: "completed", label: "Tamamlandı" },
-                { value: "cancelled", label: "İptal" },
+                { value: "completed", label: "Tamamlandi" },
+                { value: "cancelled", label: "Iptal" },
               ];
               const currentCargo = cargoStatuses.find(s => s.value === o.cargo_status) || cargoStatuses[0];
 
@@ -323,16 +323,16 @@ export default function AdminPage() {
                         {orderStatuses.find(s => s.value === o.status)?.label || o.status}
                       </span>
                     </div>
-                    <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }}>₺{Number(o.total).toLocaleString("tr-TR")}</span>
+                    <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }}>TL{Number(o.total).toLocaleString("tr-TR")}</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4" style={{ fontFamily: "var(--font-cormorant)" }}>
                     <div>
-                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Kullanıcı</p>
+                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Kullanici</p>
                       <p style={{ color: "#E9CFE8" }}>{o.user_uid.slice(0, 8)}...</p>
                     </div>
                     <div>
-                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Ödeme</p>
+                      <p style={{ color: "#BC6CFF80", fontSize: "11px", fontFamily: "var(--font-cinzel)", letterSpacing: "0.1em" }}>Odeme</p>
                       <p style={{ color: "#E9CFE8" }}>{o.payment_method}</p>
                     </div>
                     <div>
@@ -343,7 +343,7 @@ export default function AdminPage() {
 
                   {o.order_note && (
                     <div className="p-3 rounded-sm mb-4" style={{ background: "#FFB86B10", border: "1px solid #FFB86B30" }}>
-                      <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "4px" }}>📝 SİPARİŞ NOTU</p>
+                      <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "4px" }}>SIPARIS NOTU</p>
                       <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>{o.order_note}</p>
                     </div>
                   )}
@@ -352,28 +352,28 @@ export default function AdminPage() {
                     <div className="p-4 rounded-sm mb-4" style={{ background: "#FFB86B10", border: "1px solid #FFB86B30" }}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em" }}>🏦 HAVALE/EFT ÖDEMESİ</p>
-                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.8rem", marginTop: "4px" }}>Banka hesabını kontrol edin, para geldiyse onaylayın</p>
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em" }}>HAVALE/EFT ODEMESI</p>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.8rem", marginTop: "4px" }}>Banka hesabini kontrol edin, para geldiyse onaylayin</p>
                         </div>
                         <button onClick={() => handleUpdateCargo(o.id, o.cargo_company, o.cargo_tracking, o.cargo_status, "processing")} className="px-4 py-2 rounded-sm" style={{ background: "linear-gradient(135deg, #52b788, #00F0FF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em", cursor: "pointer" }}>
-                          ✓ Ödeme Onayla
+                          Odeme Onayla
                         </button>
                       </div>
                     </div>
                   )}
 
                   <div className="p-4 rounded-sm" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
-                    <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em", marginBottom: "12px" }}>📦 KARGO YÖNETİMİ</p>
+                    <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em", marginBottom: "12px" }}>KARGO YONETIMI</p>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
-                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Kargo Firması</label>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Kargo Firmasi</label>
                         <select
                           value={o.cargo_company}
                           onChange={(e) => handleUpdateCargo(o.id, e.target.value, o.cargo_tracking, o.cargo_status, o.status)}
                           className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
                           style={{ background: "#111535", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)" }}
                         >
-                          <option value="">Seç...</option>
+                          <option value="">Sec...</option>
                           {cargoCompanies.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
@@ -381,7 +381,7 @@ export default function AdminPage() {
                         <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Takip Kodu</label>
                         <input
                           type="text"
-                          placeholder="Takip numarası"
+                          placeholder="Takip numarasi"
                           value={o.cargo_tracking}
                           onChange={(e) => handleUpdateCargo(o.id, o.cargo_company, e.target.value, o.cargo_status, o.status)}
                           className="w-full px-3 py-2 rounded-sm mt-1 outline-none text-sm"
@@ -400,7 +400,7 @@ export default function AdminPage() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Sipariş Durumu</label>
+                        <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>Siparis Durumu</label>
                         <select
                           value={o.status}
                           onChange={(e) => handleUpdateCargo(o.id, o.cargo_company, o.cargo_tracking, o.cargo_status, e.target.value)}
@@ -415,7 +415,7 @@ export default function AdminPage() {
                 </div>
               );
             })}
-            {orders.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz sipariş yok</p>}
+            {orders.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>Henuz siparis yok</p>}
           </div>
         )}
 
@@ -424,15 +424,15 @@ export default function AdminPage() {
             {messages.map(m => {
               const statusColors: Record<string, { bg: string; color: string; label: string }> = {
                 pending: { bg: "#FFB86B20", color: "#FFB86B", label: "Bekliyor" },
-                replied: { bg: "#00F0FF20", color: "#00F0FF", label: "Yanıtlandı" },
-                resolved: { bg: "#BC6CFF20", color: "#BC6CFF", label: "Kapandı" },
+                replied: { bg: "#00F0FF20", color: "#00F0FF", label: "Yanitlandi" },
+                resolved: { bg: "#BC6CFF20", color: "#BC6CFF", label: "Kapandi" },
               };
               const st = statusColors[m.status] || statusColors.pending;
               return (
                 <div key={m.id} className="fairytale-card rounded-sm p-5">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <div className="flex items-center gap-3">
-                      <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{m.user_name || "Kullanıcı"}</span>
+                      <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{m.user_name || "Kullanici"}</span>
                       <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: st.bg, color: st.color }}>{st.label}</span>
                     </div>
                     <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{new Date(m.created_at).toLocaleDateString("tr-TR")}</span>
@@ -449,7 +449,7 @@ export default function AdminPage() {
                   <div className="flex gap-2 mt-3">
                     {m.status !== "resolved" && (
                       <button onClick={() => { setReplyModal(m.id); setReplyText(m.reply || ""); }} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #00F0FF40", color: "#00F0FF", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em", cursor: "pointer" }}>
-                        {m.reply ? "Yanıtı Düzenle" : "Yanıtla"}
+                        {m.reply ? "Yaniti Duzenle" : "Yanitla"}
                       </button>
                     )}
                     {m.status !== "resolved" && (
@@ -461,19 +461,19 @@ export default function AdminPage() {
                 </div>
               );
             })}
-            {messages.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz mesaj yok</p>}
+            {messages.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>Henuz mesaj yok</p>}
           </div>
         )}
 
         {tab === "reklam" && (
           <div className="fairytale-card rounded-sm p-8 max-w-xl">
-            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">✦ Reklam Yönetimi</h2>
+            <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="mb-6 neon-text-pink">Reklam Yonetimi</h2>
             <div className="space-y-4">
               <div>
-                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM METNİ</label>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM METNI</label>
                 <input
                   type="text"
-                  defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_text") || "✦ Özel Kampanya ✦" : "✦ Özel Kampanya ✦"}
+                  defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_text") || "Ozel Kampanya" : "Ozel Kampanya"}
                   onBlur={(e) => localStorage.setItem("semprexa_ad_text", e.target.value)}
                   className="fairytale-input w-full px-5 py-4 rounded-sm mt-1"
                   style={{ fontFamily: "var(--font-fuzzy)" }}
@@ -481,7 +481,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM GÖRSELİ (URL)</label>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM GORSELI (URL)</label>
                 <input
                   type="text"
                   defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_image") || "" : ""}
@@ -492,7 +492,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM LİNKİ</label>
+                <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>REKLAM LINKI</label>
                 <input
                   type="text"
                   defaultValue={typeof window !== "undefined" ? localStorage.getItem("semprexa_ad_link") || "#" : "#"}
@@ -503,7 +503,7 @@ export default function AdminPage() {
                 />
               </div>
               <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.85rem" }}>
-                Değişiklikler anında siteye yansır. Reklam görseli yerine metin kullanabilirsiniz.
+                Degisiklikler aninda siteye yansir. Reklam gorseli yerine metin kullanabilirsiniz.
               </p>
             </div>
           </div>
@@ -512,11 +512,11 @@ export default function AdminPage() {
         {tab === "musteriler" && (
           <div>
             <div className="fairytale-card rounded-sm p-6 mb-6">
-              <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.2rem" }} className="mb-4 neon-text-pink">✦ Müşteri Ara</h2>
+              <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.2rem" }} className="mb-4 neon-text-pink">Musteri Ara</h2>
               <div className="flex gap-3">
                 <input
                   type="text"
-                  placeholder="İsim, e-posta veya telefon ile ara..."
+                  placeholder="Isim, e-posta veya telefon ile ara..."
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCustomerSearch()}
@@ -527,7 +527,7 @@ export default function AdminPage() {
                   background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em",
                   cursor: customerSearching ? "wait" : "pointer", opacity: customerSearch.length < 2 ? 0.5 : 1,
                 }}>
-                  {customerSearching ? "⏳" : "🔍 ARA"}
+                  {customerSearching ? "Araniyor..." : "ARA"}
                 </button>
               </div>
             </div>
@@ -540,20 +540,20 @@ export default function AdminPage() {
                     <div key={c.uid as string} className="fairytale-card rounded-sm p-6">
                       <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
                         <div>
-                          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "1.1rem" }}>{(c.name as string) || "İsimsiz"}</p>
+                          <p style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "1.1rem" }}>{(c.name as string) || "Isimsiz"}</p>
                           <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF", fontSize: "0.85rem" }}>{c.email as string}</p>
-                          {c.phone && <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }}>📱 {c.phone as string}</p>}
-                          {c.gender && <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{c.gender === "erkek" ? "Erkek" : "Kadın"} · {c.role as string === "admin" ? "👑 Admin" : "👤 Kullanıcı"}</p>}
-                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF40", fontSize: "0.75rem", marginTop: "4px" }}>Kayıt: {new Date(c.created_at as string).toLocaleDateString("tr-TR")}</p>
+                          {c.phone ? <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }}>{c.phone as string}</p> : null}
+                          {c.gender ? <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{c.gender === "erkek" ? "Erkek" : "Kadin"} | {c.role as string === "admin" ? "Admin" : "Kullanici"}</p> : null}
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF40", fontSize: "0.75rem", marginTop: "4px" }}>Kayit: {new Date(c.created_at as string).toLocaleDateString("tr-TR")}</p>
                         </div>
                         <span className="px-3 py-1 rounded-sm" style={{ fontFamily: "var(--font-cinzel)", fontSize: "10px", background: "#FF5CA820", color: "#FF5CA8" }}>
-                          {orders.length} sipariş · ₺{orders.reduce((s: number, o: Record<string, unknown>) => s + (o.total as number || 0), 0).toLocaleString("tr-TR")}
+                          {orders.length} siparis | TL{orders.reduce((s: number, o: Record<string, unknown>) => s + (o.total as number || 0), 0).toLocaleString("tr-TR")}
                         </span>
                       </div>
 
                       {orders.length > 0 && (
                         <div className="space-y-2">
-                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "8px }}>SİPARİŞ GEÇMİŞİ</p>
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "8px" }}>SIPARIS GECMISI</p>
                           {orders.map(o => {
                             let items: Array<{ name: string; quantity: number; price: number }> = [];
                             try { items = JSON.parse(o.items); } catch {}
@@ -567,10 +567,10 @@ export default function AdminPage() {
                                   <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>
                                     {items.map(i => i.name).join(", ")}
                                   </p>
-                                  {o.cargo_tracking && <p style={{ fontFamily: "var(--font-cormorant)", color: "#00F0FF", fontSize: "0.75rem" }}>📦 {o.cargo_tracking}</p>}
+                                  {o.cargo_tracking && <p style={{ fontFamily: "var(--font-cormorant)", color: "#00F0FF", fontSize: "0.75rem" }}>{o.cargo_tracking}</p>}
                                 </div>
                                 <div className="text-right">
-                                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "0.95rem" }}>₺{o.total.toLocaleString("tr-TR")}</p>
+                                  <p style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "0.95rem" }}>TL{o.total.toLocaleString("tr-TR")}</p>
                                   <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF40", fontSize: "0.7rem" }}>{new Date(o.created_at).toLocaleDateString("tr-TR")}</p>
                                 </div>
                               </div>
@@ -585,7 +585,7 @@ export default function AdminPage() {
             )}
 
             {customerSearch.length >= 2 && customerResults.length === 0 && !customerSearching && (
-              <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Sonuç bulunamadı</p>
+              <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>Sonuc bulunamadi</p>
             )}
           </div>
         )}
@@ -595,13 +595,13 @@ export default function AdminPage() {
       {reviewModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-4" style={{ background: "#0B0F2Bf0", backdropFilter: "blur(8px)" }} onClick={() => setReviewModal(null)}>
           <div className="w-full max-w-md p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF30" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#FFB86B", fontSize: "1.2rem" }} className="mb-4">★ Yorum / Puan Ekle</h3>
+            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#FFB86B", fontSize: "1.2rem" }} className="mb-4">Yorum / Puan Ekle</h3>
 
             <div className="mb-4">
               <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>PUAN</label>
               <div className="flex gap-1 mt-2">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <button key={i} onClick={() => setReviewRating(i)} className="text-2xl transition-all hover:scale-110" style={{ color: i <= reviewRating ? "#FFB86B" : "#BC6CFF30", cursor: "pointer" }}>★</button>
+                  <button key={i} onClick={() => setReviewRating(i)} className="text-2xl transition-all hover:scale-110" style={{ color: i <= reviewRating ? "#FFB86B" : "#BC6CFF30", cursor: "pointer" }}>*</button>
                 ))}
               </div>
             </div>
@@ -611,7 +611,7 @@ export default function AdminPage() {
               <textarea
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
-                placeholder="Yorum yazın..."
+                placeholder="Yorum yazin..."
                 rows={4}
                 className="w-full px-4 py-3 rounded-sm mt-2 outline-none resize-none"
                 style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}
@@ -619,7 +619,7 @@ export default function AdminPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setReviewModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>İPTAL</button>
+              <button onClick={() => setReviewModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>IPTAL</button>
               <button onClick={() => handleAddReview(reviewModal)} className="flex-1 py-3 rounded-sm" style={{ background: "linear-gradient(135deg, #FFB86B, #FF5CA8)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>EKLE</button>
             </div>
           </div>
@@ -630,20 +630,20 @@ export default function AdminPage() {
       {replyModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-4" style={{ background: "#0B0F2Bf0", backdropFilter: "blur(8px)" }} onClick={() => setReplyModal(null)}>
           <div className="w-full max-w-md p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #00F0FF30" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.2rem" }} className="mb-4 neon-text-cyan">✉ Yanıt Yaz</h3>
+            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.2rem" }} className="mb-4 neon-text-cyan">Yanit Yaz</h3>
             <div className="mb-4">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Yanıtınızı yazın..."
+                placeholder="Yanitinizi yazin..."
                 rows={5}
                 className="w-full px-4 py-3 rounded-sm outline-none resize-none"
                 style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}
               />
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setReplyModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>İPTAL</button>
-              <button onClick={() => handleReply(replyModal)} disabled={!replyText.trim()} className="flex-1 py-3 rounded-sm" style={{ background: replyText.trim() ? "linear-gradient(135deg, #00F0FF, #BC6CFF)" : "#111535", color: replyText.trim() ? "#fff" : "#BC6CFF60", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", border: "1px solid #00F0FF40", cursor: replyText.trim() ? "pointer" : "default" }}>GÖNDER</button>
+              <button onClick={() => setReplyModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>IPTAL</button>
+              <button onClick={() => handleReply(replyModal)} disabled={!replyText.trim()} className="flex-1 py-3 rounded-sm" style={{ background: replyText.trim() ? "linear-gradient(135deg, #00F0FF, #BC6CFF)" : "#111535", color: replyText.trim() ? "#fff" : "#BC6CFF60", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", border: "1px solid #00F0FF40", cursor: replyText.trim() ? "pointer" : "default" }}>GONDER</button>
             </div>
           </div>
         </div>
