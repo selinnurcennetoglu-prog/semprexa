@@ -61,6 +61,8 @@ export default function OdemePage() {
     name: "", number: "", expiry: "", cvv: "",
   });
 
+  const [orderNote, setOrderNote] = useState("");
+
   const [cardFlipped, setCardFlipped] = useState(false);
   const [bankName, setBankName] = useState("");
   const [cardType, setCardType] = useState("");
@@ -141,6 +143,7 @@ export default function OdemePage() {
           address,
           total,
           paymentMethod: bankName || "credit_card",
+          orderNote,
         }),
       });
 
@@ -237,6 +240,7 @@ export default function OdemePage() {
                 <input placeholder="İlçe" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
                 <input placeholder="Mahalle / Köy" value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
                 <input placeholder="Açık Adres (Cadde, Sokak, Bina No)" value={address.fullAddress} onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })} className="px-4 py-3 rounded-sm outline-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                <textarea placeholder="Sipariş Notu (opsiyonel) - Örn: Kapıya bırakın, ring zili çalın, hediye paketi istiyorum..." value={orderNote} onChange={(e) => setOrderNote(e.target.value)} rows={3} maxLength={500} className="px-4 py-3 rounded-sm outline-none resize-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
               </div>
             </div>
 

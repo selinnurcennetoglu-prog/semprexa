@@ -25,10 +25,131 @@
   --font-cinzel: var(--font-cinzel);
 }
 
+/* ═══════════ THEME: KARANLIK (default) ═══════════ */
 body {
-  background: #0B0F2B;
-  color: #E9CFE8;
+  background: var(--theme-bg, #0B0F2B);
+  color: var(--theme-text, #E9CFE8);
   font-family: var(--font-cormorant), Georgia, serif;
+  --theme-bg: #0B0F2B;
+  --theme-bg-card: #111535;
+  --theme-bg-deep: #0d1130;
+  --theme-bg-input: #111535;
+  --theme-text: #E9CFE8;
+  --theme-primary: #FF5CA8;
+  --theme-secondary: #00F0FF;
+  --theme-accent: #BC6CFF;
+  --theme-gold: #FFB86B;
+  --theme-border: #BC6CFF30;
+  --theme-border-hover: #FF5CA860;
+  --theme-glow: #FF5CA820;
+  --theme-gradient: linear-gradient(135deg, #FF5CA8, #BC6CFF);
+  --theme-gradient-hover: linear-gradient(135deg, #00F0FF, #BC6CFF);
+  --theme-card-border: #BC6CFF25;
+}
+
+/* ═══════════ THEME: PEMBE ═══════════ */
+body[data-theme="pembe"] {
+  --theme-bg: #2a1525;
+  --theme-bg-card: #331a2e;
+  --theme-bg-deep: #1f1020;
+  --theme-bg-input: #331a2e;
+  --theme-text: #ffecd2;
+  --theme-primary: #ff6b9d;
+  --theme-secondary: #ffc0cb;
+  --theme-accent: #ff8fab;
+  --theme-gold: #ffd93d;
+  --theme-border: #ff6b9d30;
+  --theme-border-hover: #ff6b9d60;
+  --theme-glow: #ff6b9d20;
+  --theme-gradient: linear-gradient(135deg, #ff6b9d, #ffc0cb);
+  --theme-gradient-hover: linear-gradient(135deg, #ffc0cb, #ff8fab);
+  --theme-card-border: #ff6b9d25;
+  background: #2a1525;
+  color: #ffecd2;
+}
+
+/* ═══════════ THEME: KARANLIK (skull & chain) ═══════════ */
+body[data-theme="karanlik"] {
+  --theme-bg: #0a0a0a;
+  --theme-bg-card: #141414;
+  --theme-bg-deep: #111111;
+  --theme-bg-input: #141414;
+  --theme-text: #d4d4d4;
+  --theme-primary: #c0c0c0;
+  --theme-secondary: #808080;
+  --theme-accent: #e63946;
+  --theme-gold: #b0b0b0;
+  --theme-border: #333333;
+  --theme-border-hover: #555555;
+  --theme-glow: #c0c0c015;
+  --theme-gradient: linear-gradient(135deg, #808080, #c0c0c0);
+  --theme-gradient-hover: linear-gradient(135deg, #c0c0c0, #e63946);
+  --theme-card-border: #2a2a2a;
+  background: #0a0a0a;
+  color: #d4d4d4;
+}
+
+/* ═══════════ THEME: LACIVERT (ocean) ═══════════ */
+body[data-theme="lacivert"] {
+  --theme-bg: #0a1628;
+  --theme-bg-card: #0f1f38;
+  --theme-bg-deep: #081422;
+  --theme-bg-input: #0f1f38;
+  --theme-text: #cce4f7;
+  --theme-primary: #00b4d8;
+  --theme-secondary: #48cae4;
+  --theme-accent: #0077b6;
+  --theme-gold: #90e0ef;
+  --theme-border: #1b496530;
+  --theme-border-hover: #00b4d860;
+  --theme-glow: #00b4d815;
+  --theme-gradient: linear-gradient(135deg, #0077b6, #48cae4);
+  --theme-gradient-hover: linear-gradient(135deg, #48cae4, #90e0ef);
+  --theme-card-border: #1b496525;
+  background: #0a1628;
+  color: #cce4f7;
+}
+
+/* ═══════════ THEME: YESIL (forest) ═══════════ */
+body[data-theme="yesil"] {
+  --theme-bg: #0a1a12;
+  --theme-bg-card: #122518;
+  --theme-bg-deep: #081510;
+  --theme-bg-input: #122518;
+  --theme-text: #d4edda;
+  --theme-primary: #52b788;
+  --theme-secondary: #74c69d;
+  --theme-accent: #2d6a4f;
+  --theme-gold: #95d5b2;
+  --theme-border: #2d6a4f30;
+  --theme-border-hover: #52b78860;
+  --theme-glow: #52b78815;
+  --theme-gradient: linear-gradient(135deg, #2d6a4f, #52b788);
+  --theme-gradient-hover: linear-gradient(135deg, #52b788, #95d5b2);
+  --theme-card-border: #2d6a4f25;
+  background: #0a1a12;
+  color: #d4edda;
+}
+
+/* ═══════════ THEME: BEJ (mix) ═══════════ */
+body[data-theme="bej"] {
+  --theme-bg: #2a2218;
+  --theme-bg-card: #352c20;
+  --theme-bg-deep: #201a12;
+  --theme-bg-input: #352c20;
+  --theme-text: #f0e6d6;
+  --theme-primary: #c9a96e;
+  --theme-secondary: #d4b896;
+  --theme-accent: #8b7355;
+  --theme-gold: #e8d5a8;
+  --theme-border: #8b735530;
+  --theme-border-hover: #c9a96e60;
+  --theme-glow: #c9a96e15;
+  --theme-gradient: linear-gradient(135deg, #8b7355, #c9a96e);
+  --theme-gradient-hover: linear-gradient(135deg, #c9a96e, #e8d5a8);
+  --theme-card-border: #8b735525;
+  background: #2a2218;
+  color: #f0e6d6;
 }
 
 html {
@@ -608,4 +729,216 @@ html {
   right: -10%;
   background: radial-gradient(circle, #00F0FF 0%, transparent 70%);
   animation: flower-multiply 8s ease-in-out infinite 1s;
+}
+
+/* ═══════════ THEME DECORATIONS: KARANLIK ═══════════ */
+
+@keyframes skull-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(2deg); }
+  50% { transform: translateY(-2px) rotate(-1deg); }
+  75% { transform: translateY(-8px) rotate(1deg); }
+}
+
+@keyframes skull-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.15; }
+  50% { transform: translateY(-12px) scale(1.05); opacity: 0.25; }
+}
+
+@keyframes chain-dangle {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(3deg) translateY(4px); }
+  50% { transform: rotate(-2deg) translateY(2px); }
+  75% { transform: rotate(1.5deg) translateY(5px); }
+}
+
+@keyframes chain-swing {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+@keyframes skull-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #c0c0c030); }
+  50% { filter: drop-shadow(0 0 12px #c0c0c060) drop-shadow(0 0 20px #e6394620); }
+}
+
+.animate-skull-bob { animation: skull-bob 5s ease-in-out infinite; }
+.animate-skull-float { animation: skull-float 6s ease-in-out infinite; }
+.animate-chain-dangle { animation: chain-dangle 4s ease-in-out infinite; transform-origin: top center; }
+.animate-chain-swing { animation: chain-swing 3s ease-in-out infinite; transform-origin: top center; }
+.animate-skull-glow { animation: skull-glow 4s ease-in-out infinite; }
+
+/* ═══════════ THEME DECORATIONS: LACIVERT ═══════════ */
+
+@keyframes fish-swim {
+  0% { transform: translateX(0) translateY(0) scaleX(1); }
+  25% { transform: translateX(15px) translateY(-8px) scaleX(1); }
+  50% { transform: translateX(30px) translateY(2px) scaleX(1); }
+  75% { transform: translateX(15px) translateY(-5px) scaleX(1); }
+  100% { transform: translateX(0) translateY(0) scaleX(1); }
+}
+
+@keyframes fish-swim-reverse {
+  0% { transform: translateX(0) translateY(0) scaleX(-1); }
+  25% { transform: translateX(-12px) translateY(6px) scaleX(-1); }
+  50% { transform: translateX(-25px) translateY(-3px) scaleX(-1); }
+  75% { transform: translateX(-10px) translateY(4px) scaleX(-1); }
+  100% { transform: translateX(0) translateY(0) scaleX(-1); }
+}
+
+@keyframes fish-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+@keyframes octopus-wave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(3deg); }
+  50% { transform: translateY(-5px) rotate(-2deg); }
+  75% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes tentacle-sway {
+  0%, 100% { transform: rotate(0deg) scaleY(1); }
+  25% { transform: rotate(8deg) scaleY(1.05); }
+  50% { transform: rotate(-5deg) scaleY(0.95); }
+  75% { transform: rotate(3deg) scaleY(1.02); }
+}
+
+@keyframes seahorse-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(3deg); }
+  66% { transform: translateY(-3px) rotate(-2deg); }
+}
+
+@keyframes seaweed-sway {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25% { transform: rotate(5deg) translateX(3px); }
+  50% { transform: rotate(-3deg) translateX(-2px); }
+  75% { transform: rotate(2deg) translateX(1px); }
+}
+
+@keyframes bubble-rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.4; }
+  50% { opacity: 0.6; }
+  100% { transform: translateY(-80px) scale(0.5); opacity: 0; }
+}
+
+@keyframes crab-walk {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  25% { transform: translateX(8px) scaleX(1); }
+  50% { transform: translateX(4px) scaleX(-1); }
+  75% { transform: translateX(-4px) scaleX(-1); }
+}
+
+.animate-fish-swim { animation: fish-swim 8s ease-in-out infinite; }
+.animate-fish-swim-reverse { animation: fish-swim-reverse 9s ease-in-out infinite; }
+.animate-fish-wiggle { animation: fish-wiggle 1.5s ease-in-out infinite; }
+.animate-octopus-wave { animation: octopus-wave 7s ease-in-out infinite; }
+.animate-tentacle-sway { animation: tentacle-sway 3s ease-in-out infinite; transform-origin: top center; }
+.animate-seahorse-bob { animation: seahorse-bob 5s ease-in-out infinite; }
+.animate-seaweed-sway { animation: seaweed-sway 4s ease-in-out infinite; transform-origin: bottom center; }
+.animate-bubble-rise { animation: bubble-rise 4s ease-in-out infinite; }
+.animate-crab-walk { animation: crab-walk 6s ease-in-out infinite; }
+
+/* ═══════════ THEME DECORATIONS: YESIL ═══════════ */
+
+@keyframes bird-fly {
+  0% { transform: translateX(0) translateY(0) rotate(0deg); }
+  15% { transform: translateX(10px) translateY(-12px) rotate(5deg); }
+  30% { transform: translateX(25px) translateY(-6px) rotate(-3deg); }
+  45% { transform: translateX(18px) translateY(-18px) rotate(4deg); }
+  60% { transform: translateX(30px) translateY(-10px) rotate(-2deg); }
+  75% { transform: translateX(22px) translateY(-22px) rotate(3deg); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); }
+}
+
+@keyframes wing-flap-bird {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.7); }
+}
+
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25% { transform: rotate(6deg) translateX(3px); }
+  50% { transform: rotate(-4deg) translateX(-2px); }
+  75% { transform: rotate(3deg) translateX(1px); }
+}
+
+@keyframes flower-sway {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  33% { transform: rotate(4deg) scale(1.05); }
+  66% { transform: rotate(-3deg) scale(0.98); }
+}
+
+@keyframes petal-drift {
+  0% { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0.5; }
+  25% { transform: translateY(20vh) rotate(30deg) translateX(20px); opacity: 0.4; }
+  50% { transform: translateY(45vh) rotate(60deg) translateX(-15px); opacity: 0.3; }
+  75% { transform: translateY(70vh) rotate(100deg) translateX(10px); opacity: 0.2; }
+  100% { transform: translateY(105vh) rotate(140deg) rgba(-10px); opacity: 0; }
+}
+
+@keyframes nature-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #52b78820); }
+  50% { filter: drop-shadow(0 0 12px #52b78850) drop-shadow(0 0 20px #2d6a4f20); }
+}
+
+.animate-bird-fly { animation: bird-fly 12s ease-in-out infinite; }
+.animate-wing-flap-bird { animation: wing-flap-bird 0.3s ease-in-out infinite; }
+.animate-leaf-sway { animation: leaf-sway 5s ease-in-out infinite; transform-origin: bottom center; }
+.animate-flower-sway { animation: flower-sway 4s ease-in-out infinite; transform-origin: bottom center; }
+.animate-petal-drift { animation: petal-drift 10s linear infinite; position: absolute; pointer-events: none; }
+.animate-nature-glow { animation: nature-glow 5s ease-in-out infinite; }
+
+/* ═══════════ THEME BG GRADIENTS ═══════════ */
+
+.theme-bg-karanlik {
+  background:
+    radial-gradient(ellipse 500px 500px at 10% 15%, #c0c0c015 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 85% 25%, #80808012 0%, transparent 70%),
+    radial-gradient(ellipse 600px 350px at 45% 8%, #e6394610 0%, transparent 70%),
+    linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%);
+}
+
+.theme-bg-lacivert {
+  background:
+    radial-gradient(ellipse 500px 500px at 10% 15%, #00b4d818 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 85% 25%, #48cae415 0%, transparent 70%),
+    radial-gradient(ellipse 600px 350px at 45% 8%, #0077b612 0%, transparent 70%),
+    linear-gradient(180deg, #0a1628 0%, #0f1f38 50%, #081422 100%);
+}
+
+.theme-bg-yesil {
+  background:
+    radial-gradient(ellipse 500px 500px at 10% 15%, #52b78818 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 85% 25%, #74c69d15 0%, transparent 70%),
+    radial-gradient(ellipse 600px 350px at 45% 8%, #2d6a4f12 0%, transparent 70%),
+    linear-gradient(180deg, #0a1a12 0%, #122518 50%, #081510 100%);
+}
+
+.theme-bg-bej {
+  background:
+    radial-gradient(ellipse 500px 500px at 10% 15%, #c9a96e15 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 85% 25%, #d4b89612 0%, transparent 70%),
+    radial-gradient(ellipse 600px 350px at 45% 8%, #8b735510 0%, transparent 70%),
+    radial-gradient(ellipse 350px 500px at 25% 75%, #e8d5a810 0%, transparent 70%),
+    linear-gradient(180deg, #2a2218 0%, #352c20 50%, #201a12 100%);
+}
+
+.theme-bg-pembe {
+  background:
+    radial-gradient(ellipse 500px 500px at 10% 15%, #ff6b9d18 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 85% 25%, #ffc0cb15 0%, transparent 70%),
+    radial-gradient(ellipse 600px 350px at 45% 8%, #ff8fab12 0%, transparent 70%),
+    linear-gradient(180deg, #2a1525 0%, #331a2e 50%, #1f1020 100%);
+}
+
+.theme-bg-default {
+  background:
+    radial-gradient(ellipse 600px 600px at 5% 15%, #FF5CA830 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 92% 25%, #00F0FF25 0%, transparent 70%),
+    radial-gradient(ellipse 700px 400px at 50% 8%, #BC6CFF20 0%, transparent 70%),
+    linear-gradient(180deg, #0B0F2B 0%, #0d1130 50%, #080c20 100%);
 }

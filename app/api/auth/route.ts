@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
       const name = sanitizeInput(body.name || "");
       const phone = sanitizeInput(body.phone || "");
       const gender = sanitizeInput(body.gender || "");
+      const theme = sanitizeInput(body.theme || "dark");
 
       if (!email || !password || !name) {
         return NextResponse.json({ error: "Tum alanlar gerekli." });
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
       }
 
       const profile = {
-        uid: data.user.id, name, email, phone, gender, role: "user",
+        uid: data.user.id, name, email, phone, gender, theme, role: "user",
         created_at: new Date().toISOString(), phone_verified: false,
       };
       await supabase.from("users").insert(profile);
@@ -158,6 +159,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         access_token: data.session.access_token, refresh_token: data.session.refresh_token,
       });
+    }
+
+    if (action === "updateSettings") {
+      const { token } = body;
+      if (!token) return NextResponse.json({ error: "Giris yapmaniz gerekiyor." }, { status: 401 });
+
+      const { data: { user }, error: getUserErr } = await supabase.auth.getUser(token);
+      if (getUserErr || !user) return NextResponse.json({ error: "Giris yapmaniz gerekiyor." }, { status: 401 });
+
+      const updateData: Record<string, string> = {};
+      if (body.name !== undefined) updateData.name = sanitizeInput(body.name);
+      if (body.phone !== undefined) updateData.phone = sanitizeInput(body.phone);
+      if (body.gender !== undefined) updateData.gender = sanitizeInput(body.gender);
+      if (body.theme !== undefined) updateData.theme = sanitizeInput(body.theme);
+
+      if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ error: "Guncellenecek alan yok." });
+      }
+
+      const { error } = await supabase.from("users").update(updateData).eq("uid", user.id);
+      if (error) return NextResponse.json({ error: error.message });
+
+      const { data: profile } = await supabase.from("users").select("*").eq("uid", user.id).single();
+      return NextResponse.json({ user: profile });
     }
 
     return NextResponse.json({ error: "Bilinmeyen action" });

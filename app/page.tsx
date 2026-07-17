@@ -7,6 +7,8 @@ import { LilyLarge, LilyMedium, LilySmall, PetalFloat, Butterfly, IvyVine, NeonT
 import WelcomeLetter from "./components/WelcomeLetter";
 import MusicPlayer from "./components/MusicPlayer";
 import SocialCircle from "./components/SocialCircle";
+import ThemeSelector from "./components/ThemeSelector";
+import ThemeDecorations from "./components/ThemeDecorations";
 
 function FallingPetals() {
   const petals = Array.from({ length: 25 }, (_, i) => ({
@@ -58,6 +60,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   useEffect(() => {
     getProducts().then((p) => { setProducts(p.slice(0, 6)); setLoading(false); }).catch(() => setLoading(false));
@@ -72,6 +75,16 @@ export default function HomePage() {
   const closeWelcome = () => {
     setShowWelcome(false);
     sessionStorage.setItem("semprexa_welcomed", "true");
+    setShowThemeSelector(true);
+  };
+
+  const handleThemeSelect = (theme: string) => {
+    localStorage.setItem("semprexa_theme", theme);
+    setShowThemeSelector(false);
+  };
+
+  const handleThemeSkip = () => {
+    setShowThemeSelector(false);
   };
 
   return (
@@ -98,9 +111,13 @@ export default function HomePage() {
       <FallingPetals />
       <Sparkles />
       <Butterflies />
+      <ThemeDecorations />
 
       {/* ── WELCOME LETTER ── */}
       {showWelcome && <WelcomeLetter onClose={closeWelcome} />}
+
+      {/* ── THEME SELECTOR ── */}
+      {showThemeSelector && <ThemeSelector onSelect={handleThemeSelect} onSkip={handleThemeSkip} />}
 
       {/* ── MUSIC PLAYER ── */}
       <MusicPlayer triggerPlay={showWelcome} />

@@ -184,6 +184,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: data || [] });
     }
 
+    if (action === "sendMessage") {
+      const auth = await verifyAuth(req);
+      if (!auth) return NextResponse.json({ error: "Giris yapmaniz gerekiyor." }, { status: 401 });
+
+      const { subject, message, productId } = body;
+      if (!message || !message.trim()) return NextResponse.json({ error: "Mesaj bos olamaz." }, { status: 400 });
+
+      const { data: prof } = await supabaseAdmin.from("users").select("name, email").eq("uid", auth.user.id).single();
+
+      const { error } = await supabaseAdmin.from("messages").insert({
+        user_uid: auth.user.id,
+        user_name: prof?.name || "",
+        user_email: prof?.email || "",
+        subject: subject || "",
+        message: message.trim(),
+        product_id: productId || "",
+        status: "pending",
+        created_at: new Date().toISOString(),
+      });
+      if (error) return NextResponse.json({ error: "Mesaj gonderilemedi." });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "getMessages") {
+      const authAdmin = await requireAdmin(req);
+      if (authAdmin instanceof NextResponse) return authAdmin;
+
+      const { data, error } = await supabaseAdmin.from("messages").select("*").order("created_at", { ascending: false });
+      if (error) return NextResponse.json({ data: [] });
+      return NextResponse.json({ data: data || [] });
+    }
+
+    if (action === "replyMessage") {
+      const authAdmin = await requireAdmin(req);
+      if (authAdmin instanceof NextResponse) return authAdmin;
+
+      const { messageId, reply } = body;
+      if (!messageId || !reply) return NextResponse.json({ error: "Eksik bilgi." }, { status: 400 });
+
+      const { error } = await supabaseAdmin.from("messages").update({ reply: reply.trim(), status: "replied" }).eq("id", messageId);
+      if (error) return NextResponse.json({ error: "Yanit gonderilemedi." });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "resolveMessage") {
+      const authAdmin = await requireAdmin(req);
+      if (authAdmin instanceof NextResponse) return authAdmin;
+
+      const { messageId } = body;
+      const { error } = await supabaseAdmin.from("messages").update({ status: "resolved" }).eq("id", messageId);
+      if (error) return NextResponse.json({ error: "Guncellenemedi." });
+      return NextResponse.json({ ok: true });
+    }
+
     return NextResponse.json({ error: "Bilinmeyen action" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Sunucu hatasi";

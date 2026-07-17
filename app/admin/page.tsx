@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthChange, logoutUser } from "../lib/auth";
-import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, addReview, type Product } from "../lib/db";
+import { getProducts, createProduct, deleteProduct, getUsers, deleteUser, updateUserRole, addReview, getMessages, replyMessage, resolveMessage, type Product, type Message } from "../lib/db";
 import { getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 
 interface UserProfile { uid: string; name: string; email: string; phone: string; role: string; created_at: string; phone_verified: boolean; }
-interface Order { id: string; order_code: string; user_uid: string; items: string; address: string; total: number; status: string; payment_method: string; created_at: string; cargo_company: string; cargo_tracking: string; cargo_status: string; }
+interface Order { id: string; order_code: string; user_uid: string; items: string; address: string; total: number; status: string; payment_method: string; created_at: string; cargo_company: string; cargo_tracking: string; cargo_status: string; order_note: string; }
 
 function Sparkles() {
   const dots = Array.from({ length: 15 }, (_, i) => ({
@@ -22,10 +22,13 @@ export default function AdminPage() {
   const router = useRouter();
   const [admin, setAdmin] = useState<{ uid: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler">("istatistik");
+  const [tab, setTab] = useState<"istatistik" | "urunler" | "kullanicilar" | "urun-ekle" | "siparisler" | "mesajlar">("istatistik");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [replyModal, setReplyModal] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
   const [reviewModal, setReviewModal] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
@@ -57,12 +60,14 @@ export default function AdminPage() {
       setOrders(data.data || []);
     } catch {}
   };
+  const loadMessages = async () => { const m = await getMessages(); setMessages(m); };
 
   useEffect(() => {
     if (tab === "kullanicilar") loadUsers();
     if (tab === "urunler") loadProducts();
     if (tab === "istatistik") { loadUsers(); loadProducts(); }
     if (tab === "siparisler") loadOrders();
+    if (tab === "mesajlar") loadMessages();
   }, [tab]);
 
   const handleAddProduct = async () => {
@@ -125,6 +130,23 @@ export default function AdminPage() {
     } catch {}
   };
 
+  const handleReply = async (messageId: string) => {
+    if (!replyText.trim()) return;
+    try {
+      await replyMessage(messageId, replyText.trim());
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reply: replyText.trim(), status: "replied" } : m));
+      setReplyModal(null);
+      setReplyText("");
+    } catch { alert("Yanıt gönderilemedi."); }
+  };
+
+  const handleResolve = async (messageId: string) => {
+    try {
+      await resolveMessage(messageId);
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: "resolved" } : m));
+    } catch {}
+  };
+
   if (loading) {
     return (
       <main className="admin-fairytale flex items-center justify-center">
@@ -153,9 +175,9 @@ export default function AdminPage() {
         </div>
 
         <div className="flex gap-1 mb-8 flex-wrap" style={{ borderBottom: "1px solid #BC6CFF20" }}>
-          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler"] as const).map(t => (
+          {(["istatistik", "urunler", "urun-ekle", "kullanicilar", "siparisler", "mesajlar"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} className={`fairytale-tab px-5 py-3 text-xs tracking-widest uppercase`} style={{ fontFamily: "var(--font-cinzel)", color: tab === t ? "#FF5CA8" : "#BC6CFF" }}>
-              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : "Siparişler"}
+              {t === "istatistik" ? "İstatistikler" : t === "urunler" ? "Ürünler" : t === "urun-ekle" ? "Ürün Ekle" : t === "kullanicilar" ? "Kullanıcılar" : t === "siparisler" ? "Siparişler" : "Mesajlar"}
             </button>
           ))}
         </div>
@@ -303,6 +325,13 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  {o.order_note && (
+                    <div className="p-3 rounded-sm mb-4" style={{ background: "#FFB86B10", border: "1px solid #FFB86B30" }}>
+                      <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "4px" }}>📝 SİPARİŞ NOTU</p>
+                      <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>{o.order_note}</p>
+                    </div>
+                  )}
+
                   <div className="p-4 rounded-sm" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
                     <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em", marginBottom: "12px" }}>📦 KARGO YÖNETİMİ</p>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -359,6 +388,52 @@ export default function AdminPage() {
             {orders.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz sipariş yok</p>}
           </div>
         )}
+
+        {tab === "mesajlar" && (
+          <div className="space-y-3">
+            {messages.map(m => {
+              const statusColors: Record<string, { bg: string; color: string; label: string }> = {
+                pending: { bg: "#FFB86B20", color: "#FFB86B", label: "Bekliyor" },
+                replied: { bg: "#00F0FF20", color: "#00F0FF", label: "Yanıtlandı" },
+                resolved: { bg: "#BC6CFF20", color: "#BC6CFF", label: "Kapandı" },
+              };
+              const st = statusColors[m.status] || statusColors.pending;
+              return (
+                <div key={m.id} className="fairytale-card rounded-sm p-5">
+                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8" }}>{m.user_name || "Kullanıcı"}</span>
+                      <span className="px-2 py-0.5 rounded-sm text-[9px]" style={{ fontFamily: "var(--font-cinzel)", background: st.bg, color: st.color }}>{st.label}</span>
+                    </div>
+                    <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>{new Date(m.created_at).toLocaleDateString("tr-TR")}</span>
+                  </div>
+                  {m.subject && <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.1em", marginBottom: "4px" }}>Konu: {m.subject}</p>}
+                  <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.8rem", marginBottom: "8px" }}>{m.user_email}</p>
+                  <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", lineHeight: 1.6 }}>{m.message}</p>
+                  {m.reply && (
+                    <div className="mt-3 p-3 rounded-sm" style={{ background: "#00F0FF10", border: "1px solid #00F0FF20" }}>
+                      <p style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "9px", letterSpacing: "0.1em", marginBottom: "4px" }}>YANITINIZ</p>
+                      <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>{m.reply}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-3">
+                    {m.status !== "resolved" && (
+                      <button onClick={() => { setReplyModal(m.id); setReplyText(m.reply || ""); }} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #00F0FF40", color: "#00F0FF", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em", cursor: "pointer" }}>
+                        {m.reply ? "Yanıtı Düzenle" : "Yanıtla"}
+                      </button>
+                    )}
+                    {m.status !== "resolved" && (
+                      <button onClick={() => handleResolve(m.id)} className="px-4 py-2 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em", cursor: "pointer" }}>
+                        Kapat
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {messages.length === 0 && <p className="text-center py-12" style={{ fontFamily: "var(--font-fuzzy)", color: "#BC6CFF" }}>✦ Henüz mesaj yok</p>}
+          </div>
+        )}
       </div>
 
       {/* YORUM EKLEME MODALI */}
@@ -391,6 +466,29 @@ export default function AdminPage() {
             <div className="flex gap-3">
               <button onClick={() => setReviewModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>İPTAL</button>
               <button onClick={() => handleAddReview(reviewModal)} className="flex-1 py-3 rounded-sm" style={{ background: "linear-gradient(135deg, #FFB86B, #FF5CA8)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>EKLE</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MESAJ YANITLAMA MODALI */}
+      {replyModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4" style={{ background: "#0B0F2Bf0", backdropFilter: "blur(8px)" }} onClick={() => setReplyModal(null)}>
+          <div className="w-full max-w-md p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #00F0FF30" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.2rem" }} className="mb-4 neon-text-cyan">✉ Yanıt Yaz</h3>
+            <div className="mb-4">
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Yanıtınızı yazın..."
+                rows={5}
+                className="w-full px-4 py-3 rounded-sm outline-none resize-none"
+                style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setReplyModal(null)} className="flex-1 py-3 rounded-sm" style={{ border: "1px solid #BC6CFF40", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>İPTAL</button>
+              <button onClick={() => handleReply(replyModal)} disabled={!replyText.trim()} className="flex-1 py-3 rounded-sm" style={{ background: replyText.trim() ? "linear-gradient(135deg, #00F0FF, #BC6CFF)" : "#111535", color: replyText.trim() ? "#fff" : "#BC6CFF60", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", border: "1px solid #00F0FF40", cursor: replyText.trim() ? "pointer" : "default" }}>GÖNDER</button>
             </div>
           </div>
         </div>

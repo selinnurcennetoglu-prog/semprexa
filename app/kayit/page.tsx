@@ -43,7 +43,7 @@ const paintSplashBg = `
 
 export default function KayitPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", gender: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", gender: "", theme: "karanlik" });
   const [captchaOk, setCaptchaOk] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -69,8 +69,9 @@ export default function KayitPage() {
     if (!validate()) return;
     if (!captchaOk) return alert("Robot dogrulamasini tamamlayin.");
     setLoading(true);
-    const result = await registerUser(form.name, form.email, form.password, form.phone, form.gender);
+    const result = await registerUser(form.name, form.email, form.password, form.phone, form.gender, form.theme);
     if (result.error) { alert(result.error); setLoading(false); return; }
+    localStorage.setItem("semprexa_theme", form.theme);
     setVerificationSent(true);
     setLoading(false);
   };
@@ -138,6 +139,27 @@ export default function KayitPage() {
                 <option value="erkek">Erkek</option>
                 <option value="kadin">Kadın</option>
               </select>
+            </div>
+            <div>
+              <label style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF", fontSize: "10px", letterSpacing: "0.15em", display: "block", marginBottom: "8px" }}>TEMA SEÇİN</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { value: "karanlik", label: "Karanlık", emoji: "💀", colors: ["#0a0a0a", "#c0c0c0", "#808080"] },
+                  { value: "lacivert", label: "Lacivert", emoji: "🐙", colors: ["#0a1628", "#00b4d8", "#48cae4"] },
+                  { value: "yesil", label: "Yeşil", emoji: "🌿", colors: ["#0a1a12", "#52b788", "#74c69d"] },
+                  { value: "pembe", label: "Pembe", emoji: "🌸", colors: ["#2a1525", "#ff6b9d", "#ffc0cb"] },
+                  { value: "bej", label: "Bej", emoji: "🌍", colors: ["#2a2218", "#c9a96e", "#d4b896"] },
+                ].map(t => (
+                  <button key={t.value} type="button" onClick={() => setForm({ ...form, theme: t.value })} className="p-3 rounded-sm text-center transition-all" style={{
+                    background: form.theme === t.value ? t.colors[0] + "ee" : "#0d1130",
+                    border: form.theme === t.value ? `2px solid ${t.colors[1]}60` : "1px solid #BC6CFF30",
+                    cursor: "pointer",
+                  }}>
+                    <span style={{ fontSize: "1.2rem" }}>{t.emoji}</span>
+                    <p style={{ fontFamily: "var(--font-cinzel)", fontSize: "9px", color: form.theme === t.value ? t.colors[1] : "#BC6CFF", letterSpacing: "0.1em", marginTop: "4px" }}>{t.label}</p>
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <input type="password" placeholder="Sifre (8+ krk, buyuk+kucuk+rakam)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} maxLength={128} className={inputClass("password")} style={{ fontFamily: "var(--font-fuzzy)" }} />

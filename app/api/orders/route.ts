@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const { action } = body;
 
     if (action === "createOrder") {
-      const { items, address, total, paymentMethod } = body;
+      const { items, address, total, paymentMethod, orderNote } = body;
 
       if (!items || !address || !total) {
         return NextResponse.json({ error: "Eksik siparis bilgisi." }, { status: 400 });
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         total,
         status: "pending",
         payment_method: paymentMethod || "credit_card",
+        order_note: orderNote || "",
         created_at: new Date().toISOString(),
       }).select("id, order_code").single();
 

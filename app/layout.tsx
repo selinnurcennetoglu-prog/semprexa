@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fuzzy_Bubbles, Cormorant_Garamond, Cinzel } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import ThemeProvider from "./components/ThemeProvider";
 
 const fuzzy = Fuzzy_Bubbles({
   variable: "--font-fuzzy",
@@ -37,8 +38,10 @@ export default function RootLayout({
       className={`${fuzzy.variable} ${cormorant.variable} ${cinzel.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <div className="flex-1">{children}</div>
+        <ThemeProvider>
+          <Navbar />
+          <div className="flex-1">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

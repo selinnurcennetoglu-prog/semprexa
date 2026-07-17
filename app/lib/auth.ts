@@ -4,6 +4,7 @@ export interface UserProfile {
   email: string;
   phone: string;
   gender: string;
+  theme: string;
   role: string;
   created_at: string;
   phone_verified: boolean;
@@ -67,10 +68,10 @@ async function apiCall(body: Record<string, unknown>) {
 }
 
 export async function registerUser(
-  name: string, email: string, password: string, phone: string, gender: string
+  name: string, email: string, password: string, phone: string, gender: string, theme: string = "karanlik"
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const json = await apiCall({ action: "signup", name, email, password, phone, gender });
+    const json = await apiCall({ action: "signup", name, email, password, phone, gender, theme });
     if (json.error) return { user: null, error: json.error };
     if (json.access_token && json.refresh_token) {
       storeSession({ access_token: json.access_token, refresh_token: json.refresh_token });
@@ -107,6 +108,17 @@ export async function logoutUser(): Promise<void> {
   _refreshToken = null;
   clearSession();
   notify(null);
+}
+
+export async function updateUserSettings(data: { name?: string; phone?: string; gender?: string; theme?: string }): Promise<{ error?: string }> {
+  try {
+    const json = await apiCall({ action: "updateSettings", token: _accessToken, ...data });
+    if (json.error) return { error: json.error };
+    if (json.user) notify(json.user);
+    return {};
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Baglanti hatasi" };
+  }
 }
 
 export async function getCurrentUser(): Promise<UserProfile | null> {

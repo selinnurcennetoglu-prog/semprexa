@@ -91,3 +91,36 @@ export async function getReviews(productId: string): Promise<Review[]> {
   const json = await dbPost({ action: "getReviews", productId });
   return json.data || [];
 }
+
+export interface Message {
+  id: string;
+  user_uid: string;
+  user_name: string;
+  user_email: string;
+  subject: string;
+  message: string;
+  reply: string;
+  status: string;
+  product_id: string;
+  created_at: string;
+}
+
+export async function sendMessage(subject: string, message: string, productId?: string): Promise<void> {
+  const json = await dbPost({ action: "sendMessage", subject, message, productId }, true);
+  if (json.error) throw new Error(json.error);
+}
+
+export async function getMessages(): Promise<Message[]> {
+  const json = await dbPost({ action: "getMessages" }, true);
+  return json.data || [];
+}
+
+export async function replyMessage(messageId: string, reply: string): Promise<void> {
+  const json = await dbPost({ action: "replyMessage", messageId, reply }, true);
+  if (json.error) throw new Error(json.error);
+}
+
+export async function resolveMessage(messageId: string): Promise<void> {
+  const json = await dbPost({ action: "resolveMessage", messageId }, true);
+  if (json.error) throw new Error(json.error);
+}
