@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useTheme } from "../lib/useTheme";
 
 export default function Footer() {
@@ -51,6 +52,10 @@ export default function Footer() {
         </p>
 
         <div className="flex justify-center gap-6 mt-4">
+          <Link href="/gizlilik-politikasi"
+            style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-secondary)", fontSize: "10px", letterSpacing: "0.1em" }}>
+            Gizlilik Politikası
+          </Link>
           <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer"
             style={{ fontFamily: "var(--font-cinzel)", color: "var(--theme-secondary)", fontSize: "10px", letterSpacing: "0.1em" }}>
             TikTok
