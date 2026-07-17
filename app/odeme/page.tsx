@@ -6,6 +6,7 @@ import Link from "next/link";
 import { onAuthChange, getAccessToken } from "../lib/auth";
 import { LilySmall } from "../components/Decorations";
 import { useTheme } from "../lib/useTheme";
+import BankInfoModal from "../components/BankInfoModal";
 
 interface CartItem {
   productId: string;
@@ -27,12 +28,6 @@ function formatExpiry(v: string): string {
 }
 
 function getBankName(bin: string): string {
-  const banks: Record<string, string> = {
-    "4": "Visa",
-    "5": "Mastercard",
-    "6": "Troy",
-    "34": "Amex",
-  };
   if (bin.startsWith("9792")) return "Ziraat Bankası";
   if (bin.startsWith("4")) return "Garanti BBVA";
   if (bin.startsWith("5")) return "İş Bankası";
@@ -47,17 +42,15 @@ export default function OdemePage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "havale">("card");
+  const [showBankInfo, setShowBankInfo] = useState(false);
 
   const [address, setAddress] = useState({
     fullName: "", phone: "", city: "", district: "", neighborhood: "", fullAddress: "",
   });
 
-  const [card, setCard] = useState({
-    name: "", number: "", expiry: "", cvv: "",
-  });
-
+  const [card, setCard] = useState({ name: "", number: "", expiry: "", cvv: "" });
   const [orderNote, setOrderNote] = useState("");
-
   const [cardFlipped, setCardFlipped] = useState(false);
   const [bankName, setBankName] = useState("");
   const [cardType, setCardType] = useState("");
@@ -68,9 +61,7 @@ export default function OdemePage() {
       setLoggedIn(true);
     });
     const stored = localStorage.getItem("semprexa_cart");
-    if (stored) {
-      try { setCart(JSON.parse(stored)); } catch { setCart([]); }
-    }
+    if (stored) { try { setCart(JSON.parse(stored)); } catch { setCart([]); } }
     setLoading(false);
     return () => { unsub.then((fn) => fn()); };
   }, [router]);
@@ -84,10 +75,7 @@ export default function OdemePage() {
       else if (first === "5") setCardType("mastercard");
       else if (first === "6") setCardType("troy");
       else setCardType("");
-    } else {
-      setBankName("");
-      setCardType("");
-    }
+    } else { setBankName(""); setCardType(""); }
   }, [card.number]);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -96,81 +84,50 @@ export default function OdemePage() {
 
   const handlePayment = async () => {
     if (!address.fullName || !address.phone || !address.city || !address.district || !address.neighborhood || !address.fullAddress) {
-      alert("Lutfen tum adres bilgilerini doldurun.");
-      return;
-    }
-    if (card.number.replace(/\s/g, "").length < 16) {
-      alert("Gecerli bir kart numarasi girin.");
-      return;
-    }
-    if (card.expiry.replace(/\D/g, "").length < 4) {
-      alert("Gecerli bir son kullanma tarihi girin.");
-      return;
-    }
-    if (card.cvv.length < 3) {
-      alert("Gecerli bir CVV girin.");
-      return;
-    }
-    if (!card.name) {
-      alert("Kart uzerindeki ismi girin.");
-      return;
+      alert("Lütfen tüm adres bilgilerini doldurun."); return;
     }
 
     setProcessing(true);
-
     try {
       const token = getAccessToken();
-      if (!token) {
-        alert("Oturumunuz suresi dolmus. Lutfen tekrar giris yapin.");
-        setProcessing(false);
-        return;
-      }
+      if (!token) { alert("Oturumunuz süresi dolmuş. Lütfen tekrar giriş yapın."); setProcessing(false); return; }
 
       const orderRes = await fetch("/api/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
           action: "createOrder",
           items: cart,
           address,
           total,
-          paymentMethod: bankName || "credit_card",
+          paymentMethod: paymentMethod === "havale" ? "havale" : (bankName || "credit_card"),
           orderNote,
         }),
       });
 
       const orderData = await orderRes.json();
       if (!orderData.success || !orderData.orderId) {
-        alert("Siparis olusturulamadi. Lutfen tekrar deneyin.");
-        setProcessing(false);
-        return;
+        alert("Sipariş oluşturulamadı."); setProcessing(false); return;
       }
 
-      const maskedCard = "****" + card.number.replace(/\s/g, "").slice(-4);
-      sessionStorage.setItem("semprexa_order", JSON.stringify({
-        orderId: orderData.orderId,
-        orderCode: orderData.orderCode,
-        maskedCard,
-        bankName,
-        total,
-        cart,
-        address,
-      }));
+      localStorage.removeItem("semprexa_cart");
 
-      await new Promise((r) => setTimeout(r, 1000));
-
-      if (card.cvv === "000" || card.number.replace(/\s/g, "").endsWith("0000")) {
-        router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode));
+      if (paymentMethod === "havale") {
+        router.push("/odeme/havale?oid=" + encodeURIComponent(orderData.orderCode) + "&total=" + total);
       } else {
-        router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode) + "&bank=" + encodeURIComponent(bankName));
+        const maskedCard = "****" + card.number.replace(/\s/g, "").slice(-4);
+        sessionStorage.setItem("semprexa_order", JSON.stringify({
+          orderId: orderData.orderId, orderCode: orderData.orderCode, maskedCard, bankName, total, cart, address,
+        }));
+        await new Promise((r) => setTimeout(r, 1000));
+        if (card.cvv === "000" || card.number.replace(/\s/g, "").endsWith("0000")) {
+          router.push("/odeme/dogrulama?status=fail&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode));
+        } else {
+          router.push("/odeme/dogrulama?status=ok&orderId=" + orderData.orderId + "&orderCode=" + encodeURIComponent(orderData.orderCode) + "&bank=" + encodeURIComponent(bankName));
+        }
       }
     } catch (err) {
-      console.error("Payment error:", err);
-      alert("Odeme sirasinda bir hata olustu.");
-      setProcessing(false);
+      console.error("Payment error:", err); alert("Ödeme sırasında bir hata oluştu."); setProcessing(false);
     }
   };
 
@@ -200,6 +157,7 @@ export default function OdemePage() {
 
   return (
     <main style={{ background: bg, minHeight: "100vh" }} className="pt-24 pb-16 px-4 md:px-6">
+      {showBankInfo && <BankInfoModal onClose={() => setShowBankInfo(false)} />}
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2rem" }} className="neon-text-pink">Ödeme</h1>
@@ -209,20 +167,34 @@ export default function OdemePage() {
         <div className="flex gap-1 mb-6 justify-center">
           {["Sipariş Özeti", "Adres", "Ödeme"].map((s, i) => (
             <div key={s} className="flex items-center gap-1">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold" style={{
-                fontFamily: "var(--font-cinzel)",
-                background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)",
-                color: "#fff",
-              }}>{i + 1}</span>
+              <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ fontFamily: "var(--font-cinzel)", background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff" }}>{i + 1}</span>
               <span style={{ fontFamily: "var(--font-cinzel)", fontSize: "10px", color: "#BC6CFF", letterSpacing: "0.1em" }}>{s}</span>
               {i < 2 && <span className="mx-1" style={{ color: "#BC6CFF40" }}>→</span>}
             </div>
           ))}
         </div>
 
+        <div className="flex gap-3 mb-6 justify-center">
+          <button onClick={() => setPaymentMethod("card")} className="px-6 py-3 rounded-sm transition-all" style={{
+            fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.15em",
+            background: paymentMethod === "card" ? "linear-gradient(135deg, #FF5CA8, #BC6CFF)" : "#111535",
+            color: paymentMethod === "card" ? "#fff" : "#BC6CFF",
+            border: paymentMethod === "card" ? "1px solid #FF5CA860" : "1px solid #BC6CFF30",
+            cursor: "pointer",
+          }}>💳 Kredi / Banka Kartı</button>
+          <button onClick={() => setPaymentMethod("havale")} className="px-6 py-3 rounded-sm transition-all" style={{
+            fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.15em",
+            background: paymentMethod === "havale" ? "linear-gradient(135deg, #FFB86B, #FF5CA8)" : "#111535",
+            color: paymentMethod === "havale" ? "#fff" : "#BC6CFF",
+            border: paymentMethod === "havale" ? "1px solid #FFB86B60" : "1px solid #BC6CFF30",
+            cursor: "pointer",
+          }}>🏦 Havale / EFT</button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
 
+            {/* ADRES */}
             <div className="p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF20" }}>
               <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.1rem" }} className="mb-4 neon-text-cyan">✦ Teslimat Adresi</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,72 +207,113 @@ export default function OdemePage() {
                 <input placeholder="İlçe" value={address.district} onChange={(e) => setAddress({ ...address, district: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
                 <input placeholder="Mahalle / Köy" value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
                 <input placeholder="Açık Adres (Cadde, Sokak, Bina No)" value={address.fullAddress} onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })} className="px-4 py-3 rounded-sm outline-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <textarea placeholder="Sipariş Notu (opsiyonel) - Örn: Kapıya bırakın, ring zili çalın, hediye paketi istiyorum..." value={orderNote} onChange={(e) => setOrderNote(e.target.value)} rows={3} maxLength={500} className="px-4 py-3 rounded-sm outline-none resize-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                <textarea placeholder="Sipariş Notu (opsiyonel)" value={orderNote} onChange={(e) => setOrderNote(e.target.value)} rows={3} maxLength={500} className="px-4 py-3 rounded-sm outline-none resize-none md:col-span-2" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
               </div>
             </div>
 
-            <div className="p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF20" }}>
-              <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.1rem" }} className="mb-4 neon-text-cyan">✦ Kart Bilgileri</h2>
+            {/* KART BILGILERI */}
+            {paymentMethod === "card" && (
+              <div className="p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #BC6CFF20" }}>
+                <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#00F0FF", fontSize: "1.1rem" }} className="mb-4 neon-text-cyan">✦ Kart Bilgileri</h2>
 
-              <div className="mb-6 perspective-1000" style={{ perspective: "1000px" }}>
-                <div className="relative w-full max-w-sm mx-auto h-52 transition-transform duration-500" style={{ transformStyle: "preserve-3d", transform: cardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
-                  <div className="absolute inset-0 rounded-xl p-6 flex flex-col justify-between" style={{ backfaceVisibility: "hidden", background: "linear-gradient(135deg, #1a1040 0%, #2d1570 50%, #0d1130 100%)", border: "1px solid #BC6CFF40", boxShadow: "0 10px 40px #00000060, 0 0 20px #BC6CFF15" }}>
-                    <div className="flex items-center justify-between">
-                      <div className="w-12 h-8 rounded" style={{ background: "linear-gradient(135deg, #FFB86B, #FF5CA8)" }} />
-                      <div className="flex gap-1">
-                        {cardType === "visa" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "14px", fontWeight: 700 }}>VISA</span>}
-                        {cardType === "mastercard" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#FF5CA8", fontSize: "12px", fontWeight: 700 }}>MASTERCARD</span>}
-                        {cardType === "troy" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "12px", fontWeight: 700 }}>TROY</span>}
+                <div className="mb-6" style={{ perspective: "1000px" }}>
+                  <div className="relative w-full max-w-sm mx-auto h-52 transition-transform duration-500" style={{ transformStyle: "preserve-3d", transform: cardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
+                    <div className="absolute inset-0 rounded-xl p-6 flex flex-col justify-between" style={{ backfaceVisibility: "hidden", background: "linear-gradient(135deg, #1a1040 0%, #2d1570 50%, #0d1130 100%)", border: "1px solid #BC6CFF40", boxShadow: "0 10px 40px #00000060, 0 0 20px #BC6CFF15" }}>
+                      <div className="flex items-center justify-between">
+                        <div className="w-12 h-8 rounded" style={{ background: "linear-gradient(135deg, #FFB86B, #FF5CA8)" }} />
+                        <div className="flex gap-1">
+                          {cardType === "visa" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "14px", fontWeight: 700 }}>VISA</span>}
+                          {cardType === "mastercard" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#FF5CA8", fontSize: "12px", fontWeight: 700 }}>MASTERCARD</span>}
+                          {cardType === "troy" && <span style={{ fontFamily: "var(--font-cinzel)", color: "#00F0FF", fontSize: "12px", fontWeight: 700 }}>TROY</span>}
+                        </div>
+                      </div>
+                      <div><p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.2rem", letterSpacing: "0.2em" }}>{card.number || "•••• •••• •••• ••••"}</p></div>
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "8px", letterSpacing: "0.1em" }}>KART SAHİBİ</p>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "0.9rem" }}>{card.name || "AD SOYAD"}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "8px", letterSpacing: "0.1em" }}>SKT</p>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "0.9rem" }}>{card.expiry || "AA/YY"}</p>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.2rem", letterSpacing: "0.2em" }}>{card.number || "•••• •••• •••• ••••"}</p>
-                    </div>
-                    <div className="flex justify-between items-end">
-                      <div>
-                        <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "8px", letterSpacing: "0.1em" }}>KART SAHİBİ</p>
-                        <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "0.9rem" }}>{card.name || "AD SOYAD"}</p>
+                    <div className="absolute inset-0 rounded-xl p-6 flex flex-col justify-between" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "linear-gradient(135deg, #2d1570 0%, #1a1040 100%)", border: "1px solid #BC6CFF40" }}>
+                      <div className="w-full h-12 rounded" style={{ background: "#000" }} />
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 h-10 rounded flex items-center justify-end px-4" style={{ background: "#0d1130", border: "1px solid #BC6CFF30" }}>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.1rem" }}>{card.cvv || "•••"}</p>
+                        </div>
+                        <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px" }}>CVV</p>
                       </div>
-                      <div>
-                        <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "8px", letterSpacing: "0.1em" }}>SKT</p>
-                        <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "0.9rem" }}>{card.expiry || "AA/YY"}</p>
+                      <div />
+                    </div>
+                  </div>
+                </div>
+
+                {bankName && <p className="text-center mb-4" style={{ fontFamily: "var(--font-cormorant)", color: "#FFB86B", fontSize: "0.85rem" }}>🏦 {bankName}</p>}
+
+                <div className="space-y-3">
+                  <input placeholder="Kart Üzerindeki İsim" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value.toUpperCase() })} className="w-full px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                  <input placeholder="Kart Numarası" value={card.number} onChange={(e) => setCard({ ...card, number: formatCardNumber(e.target.value) })} maxLength={19} className="w-full px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem", letterSpacing: "0.15em" }} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input placeholder="AA/YY" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: formatExpiry(e.target.value) })} maxLength={7} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                    <input placeholder="CVV" value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) })} onFocus={() => setCardFlipped(true)} onBlur={() => setCardFlipped(false)} maxLength={4} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
+                  </div>
+                </div>
+                <p className="mt-4 text-center" style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>🔒 3D Secure ile güvenli ödeme</p>
+              </div>
+            )}
+
+            {/* HAVALE/EFT */}
+            {paymentMethod === "havale" && (
+              <div className="p-6 rounded-sm" style={{ background: "#111535", border: "1px solid #FFB86B30" }}>
+                <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FFB86B", fontSize: "1.1rem" }} className="mb-4">🏦 Havale / EFT ile Ödeme</h2>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-sm" style={{ background: "#FFB86B10", border: "1px solid #FFB86B20" }}>
+                    <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", lineHeight: 1.8 }}>
+                      Siparişiniz onaylandıktan sonra aşağıdaki banka hesabına <strong style={{ color: "#FFB86B" }}>₺{total.toLocaleString("tr-TR")}</strong> tutarında havale/EFT yapmanız gerekmektedir.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-sm" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>BANKA</span>
+                      <span style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>Garanti BBVA</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>HESAP SAHİBİ</span>
+                      <span style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8" }}>Emel Cennetoğlu</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px", letterSpacing: "0.1em" }}>IBAN</span>
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontFamily: "var(--font-cormorant)", color: "#FFB86B", fontSize: "0.85rem" }}>TR87 0006 7010 0000 0026 4162 88</span>
+                        <button onClick={() => { navigator.clipboard.writeText("TR870006701000000026416288"); alert("IBAN kopyalandı!"); }} className="px-2 py-1 rounded-sm" style={{ border: "1px solid #FFB86B40", color: "#FFB86B", fontFamily: "var(--font-cinzel)", fontSize: "8px", cursor: "pointer" }}>Kopyala</button>
                       </div>
                     </div>
                   </div>
-                  <div className="absolute inset-0 rounded-xl p-6 flex flex-col justify-between" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "linear-gradient(135deg, #2d1570 0%, #1a1040 100%)", border: "1px solid #BC6CFF40" }}>
-                    <div className="w-full h-12 rounded" style={{ background: "#000" }} />
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 h-10 rounded flex items-center justify-end px-4" style={{ background: "#0d1130", border: "1px solid #BC6CFF30" }}>
-                        <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.1rem" }}>{card.cvv || "•••"}</p>
-                      </div>
-                      <p style={{ fontFamily: "var(--font-cinzel)", color: "#BC6CFF80", fontSize: "9px" }}>CVV</p>
-                    </div>
-                    <div />
+
+                  <button onClick={() => setShowBankInfo(true)} className="w-full py-3 rounded-sm" style={{ border: "1px solid #FFB86B40", color: "#FFB86B", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.15em", cursor: "pointer" }}>
+                    Tüm Banka Hesaplarını Gör
+                  </button>
+
+                  <div className="p-4 rounded-sm" style={{ background: "#FFB86B10", border: "1px solid #FFB86B20" }}>
+                    <p style={{ fontFamily: "var(--font-cormorant)", color: "#FFB86B", fontSize: "0.85rem", lineHeight: 1.6 }}>
+                      <strong>Önemli:</strong> Havale/EFT açıklamasına <strong>sipariş kodunuzu</strong> yazmayı unutmayın.
+                      Ödeme onayı 1-2 iş günü içinde yapılacaktır.
+                    </p>
                   </div>
                 </div>
               </div>
-
-              {bankName && <p className="text-center mb-4" style={{ fontFamily: "var(--font-cormorant)", color: "#FFB86B", fontSize: "0.85rem" }}>🏦 {bankName}</p>}
-
-              <div className="space-y-3">
-                <input placeholder="Kart Üzerindeki İsim" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value.toUpperCase() })} className="w-full px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                <input placeholder="Kart Numarası" value={card.number} onChange={(e) => setCard({ ...card, number: formatCardNumber(e.target.value) })} maxLength={19} className="w-full px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem", letterSpacing: "0.15em" }} />
-                <div className="grid grid-cols-2 gap-3">
-                  <input placeholder="AA/YY" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: formatExpiry(e.target.value) })} maxLength={7} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                  <input placeholder="CVV" value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) })} onFocus={() => setCardFlipped(true)} onBlur={() => setCardFlipped(false)} maxLength={4} className="px-4 py-3 rounded-sm outline-none" style={{ background: "#0d1130", border: "1px solid #BC6CFF30", color: "#E9CFE8", fontFamily: "var(--font-cormorant)", fontSize: "0.95rem" }} />
-                </div>
-              </div>
-
-              <p className="mt-4 text-center" style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF60", fontSize: "0.8rem" }}>
-                🔒 3D Secure ile güvenli ödeme
-              </p>
-            </div>
+            )}
           </div>
 
+          {/* SIPARIS OZETI */}
           <div className="lg:col-span-1">
             <div className="p-6 rounded-sm sticky top-24" style={{ background: "#111535", border: "1px solid #FF5CA830" }}>
               <h2 style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.1rem" }} className="mb-4 neon-text-pink">Sipariş Özeti</h2>
-
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#BC6CFF40 transparent" }}>
                 {cart.map((item) => (
                   <div key={item.productId} className="flex items-center gap-3 pb-3" style={{ borderBottom: "1px solid #BC6CFF15" }}>
@@ -315,7 +328,6 @@ export default function OdemePage() {
                   </div>
                 ))}
               </div>
-
               <div className="space-y-2 pt-2" style={{ borderTop: "1px solid #BC6CFF20" }}>
                 <div className="flex justify-between">
                   <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>Ara Toplam</span>
@@ -331,11 +343,14 @@ export default function OdemePage() {
                   <span style={{ fontFamily: "var(--font-fuzzy)", color: "#FF5CA8", fontSize: "1.3rem" }} className="neon-text-pink">₺{total.toLocaleString("tr-TR")}</span>
                 </div>
               </div>
-
-              <button onClick={handlePayment} disabled={processing} className="w-full mt-6 py-4 rounded-sm transition-all hover:translate-y-[-1px]" style={{ background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", border: "1px solid #FF5CA860", boxShadow: "0 4px 20px #FF5CA830, 0 0 30px #BC6CFF20", cursor: processing ? "wait" : "pointer", opacity: processing ? 0.7 : 1 }}>
-                {processing ? "⏳ İşleniyor..." : "✦ Ödemeyi Tamamla ✦"}
+              <button onClick={handlePayment} disabled={processing} className="w-full mt-6 py-4 rounded-sm transition-all hover:translate-y-[-1px]" style={{
+                background: paymentMethod === "havale" ? "linear-gradient(135deg, #FFB86B, #FF5CA8)" : "linear-gradient(135deg, #FF5CA8, #BC6CFF)",
+                color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
+                border: "1px solid #FF5CA860", boxShadow: "0 4px 20px #FF5CA830, 0 0 30px #BC6CFF20",
+                cursor: processing ? "wait" : "pointer", opacity: processing ? 0.7 : 1,
+              }}>
+                {processing ? "⏳ İşleniyor..." : paymentMethod === "havale" ? "✦ Siparişi Onayla ✦" : "✦ Ödemeyi Tamamla ✦"}
               </button>
-
               <Link href="/sepet" className="block text-center mt-3" style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF", fontSize: "0.85rem" }}>
                 ← Sepete Dön
               </Link>

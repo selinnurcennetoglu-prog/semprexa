@@ -335,6 +335,20 @@ export default function AdminPage() {
                     </div>
                   )}
 
+                  {o.payment_method === "havale" && o.status === "pending" && (
+                    <div className="p-4 rounded-sm mb-4" style={{ background: "#FFB86B10", border: "1px solid #FFB86B30" }}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em" }}>🏦 HAVALE/EFT ÖDEMESİ</p>
+                          <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.8rem", marginTop: "4px" }}>Banka hesabını kontrol edin, para geldiyse onaylayın</p>
+                        </div>
+                        <button onClick={() => handleUpdateCargo(o.id, o.cargo_company, o.cargo_tracking, o.cargo_status, "processing")} className="px-4 py-2 rounded-sm" style={{ background: "linear-gradient(135deg, #52b788, #00F0FF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "9px", letterSpacing: "0.1em", cursor: "pointer" }}>
+                          ✓ Ödeme Onayla
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-4 rounded-sm" style={{ background: "#0d1130", border: "1px solid #BC6CFF20" }}>
                     <p style={{ fontFamily: "var(--font-cinzel)", color: "#FFB86B", fontSize: "10px", letterSpacing: "0.15em", marginBottom: "12px" }}>📦 KARGO YÖNETİMİ</p>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
