@@ -117,22 +117,30 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Kayit basarisiz." });
       }
 
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      await supabaseAdmin.auth.admin.updateUserById(data.user.id, { email_confirm: true });
+
       const profile = {
         uid: data.user.id, name, email, phone, gender, theme, role: "user",
         created_at: new Date().toISOString(), phone_verified: false,
       };
       await supabase.from("users").insert(profile);
 
-      if (data.session) {
+      const { data: loginSession } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (loginSession && loginSession.session) {
         return NextResponse.json({
-          user: profile, access_token: data.session.access_token, refresh_token: data.session.refresh_token,
-          message: "Kayit basarili! E-posta adresinizi dogrulayin.",
+          user: profile, access_token: loginSession.session.access_token, refresh_token: loginSession.session.refresh_token,
+          message: "Kayit basarili!",
         });
       }
 
       return NextResponse.json({
-        user: profile, message: "Kayit basarili! E-posta adresinize dogrulama linki gonderildi. Lutfen e-postanizi dogrulayin.",
-        requiresVerification: true,
+        user: profile, message: "Kayit basarili!",
       });
     }
 

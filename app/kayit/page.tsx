@@ -43,9 +43,9 @@ export default function KayitPage() {
   const [verificationSent, setVerificationSent] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthChange((u) => { if (u) router.push("/urunler"); });
+    const unsub = onAuthChange((u) => { if (u && !verificationSent) router.push("/urunler"); });
     return () => { unsub.then(fn => fn()); };
-  }, [router]);
+  }, [router, verificationSent]);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -78,24 +78,21 @@ export default function KayitPage() {
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-12">
             <LilySmall className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">E-postanizi Kontrol Edin</h1>
+            <h1 style={{ fontFamily: "var(--font-fuzzy)", fontSize: "2.5rem" }} className="neon-text-cyan">Kayit Basarili!</h1>
             <div className="royal-divider mt-4"><span style={{ color: "#FF5CA8" }}>&#10022;</span></div>
           </div>
           <div className="fairytale-frame p-8 text-center space-y-6">
-            <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center" style={{ background: "#00F0FF15", border: "2px solid #00F0FF30" }}>
-              <span style={{ fontSize: "2rem" }}>&#9993;</span>
+            <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center" style={{ background: "#52b78820", border: "2px solid #52b788" }}>
+              <span style={{ fontSize: "2rem", color: "#52b788" }}>&#10003;</span>
             </div>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#E9CFE8", fontSize: "1.1rem" }}>
-              <strong>{form.email}</strong> adresine dogrulama linki gonderdik.
+              Hesabiniz basariyla olusturuldu!
             </p>
             <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF" }}>
-              E-posta kutunuzu (spam klasorunu de) kontrol edin ve dogrulama linkine tiklayin.
+              Artik alisverise baslayabilirsiniz.
             </p>
-            <p style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.85rem" }}>
-              Dogrulama sonrasi <Link href="/giris" className="neon-text-pink hover:underline">Giris Yapin</Link> sayfasindan giris yapabilirsiniz.
-            </p>
-            <Link href="/giris" className="block w-full py-4 rounded-sm" style={{ background: "linear-gradient(135deg, #FF5CA8, #BC6CFF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
-              Giris Sayfasina Don
+            <Link href="/magaza" className="block w-full py-4 rounded-sm" style={{ background: "linear-gradient(135deg, #52b788, #00F0FF)", color: "#fff", fontFamily: "var(--font-cinzel)", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase" }}>
+              Alisverise Basla
             </Link>
           </div>
         </div>

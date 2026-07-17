@@ -29,36 +29,41 @@ export default function Captcha({ onVerify }: { onVerify: () => void }) {
   };
 
   return (
-    <div className="p-5 bg-royal/40 border border-gold/10">
+    <div className="p-5 rounded-sm" style={{ background: "#0d113080", border: "1px solid #BC6CFF20" }}>
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-4 h-4 border-2 border-gold/40 rounded-sm flex items-center justify-center">
-          {verified && <span className="text-gold text-xs">✓</span>}
+        <div className="w-4 h-4 rounded-sm flex items-center justify-center" style={{ border: `2px solid ${verified ? "#52b788" : "#BC6CFF40"}` }}>
+          {verified && <span style={{ color: "#52b788", fontSize: "10px" }}>&#10003;</span>}
         </div>
-        <span className="font-cormorant text-sm text-sand/50">Robot olmadığını doğrulayın</span>
+        <span style={{ fontFamily: "var(--font-cormorant)", color: "#BC6CFF80", fontSize: "0.9rem" }}>Robot olmadiginizi dogrulayin</span>
       </div>
       {!verified && (
         <div className="flex items-center gap-3">
-          <span className="font-cormorant text-cream text-lg">
+          <span style={{ fontFamily: "var(--font-fuzzy)", color: "#E9CFE8", fontSize: "1.1rem" }}>
             {num1} + {num2} = ?
           </span>
           <input
             type="number"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            className={`w-20 px-3 py-2 bg-espresso border text-cream font-cormorant text-center focus:outline-none ${
-              error ? "border-red-500 animate-shake" : "border-gold/20 focus:border-gold/40"
-            }`}
+            className="w-20 px-3 py-2 rounded-sm text-center outline-none"
+            style={{
+              background: "#111535",
+              border: error ? "1px solid #FF5CA8" : "1px solid #BC6CFF30",
+              color: "#E9CFE8",
+              fontFamily: "var(--font-cormorant)",
+            }}
           />
           <button
             onClick={check}
-            className="px-4 py-2 bg-gold/20 text-gold font-cormorant text-sm hover:bg-gold/30 transition-colors"
+            className="px-4 py-2 rounded-sm"
+            style={{ background: "#BC6CFF20", color: "#BC6CFF", fontFamily: "var(--font-cinzel)", fontSize: "10px", letterSpacing: "0.1em", cursor: "pointer" }}
           >
-            Doğrula
+            Dogrula
           </button>
         </div>
       )}
       {verified && (
-        <span className="font-cormorant text-gold text-sm">✓ Doğrulandı</span>
+        <span style={{ fontFamily: "var(--font-cormorant)", color: "#52b788", fontSize: "0.9rem" }}>&#10003; Dogrulandi</span>
       )}
     </div>
   );
